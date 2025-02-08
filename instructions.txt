@@ -1,0 +1,98 @@
+Resona Project - Installation Guide
+
+==========================================
+📌 Prerequisites
+==========================================
+Before setting up the project, ensure you have:
+- Python 3.9 installed (Essentia works best with this version).
+- Git installed to clone the repository.
+- FFmpeg installed for audio processing.
+
+==========================================
+📥 Step 1: Clone the Repository
+==========================================
+1. Open a terminal or command prompt.
+2. Run the following commands:
+   
+   git clone https://github.com/your-repo/resona.git
+   cd resona
+
+==========================================
+🛠 Step 2: Set Up a Virtual Environment
+==========================================
+To avoid conflicts with system packages, create a virtual environment:
+
+- For Mac/Linux:
+  
+  python3 -m venv resona_env
+  source resona_env/bin/activate
+
+- For Windows (Command Prompt):
+
+  python -m venv resona_env
+  resona_env\Scripts\activate
+
+==========================================
+📦 Step 3: Install Dependencies
+==========================================
+Run the following command to install all required packages:
+
+  pip install -r requirements.txt
+
+==========================================
+🎵 Step 4: Install FFmpeg
+==========================================
+FFmpeg is required for audio conversion. Install it based on your OS:
+
+- Mac (Homebrew):
+
+  brew install ffmpeg
+
+- Ubuntu:
+
+  sudo apt install ffmpeg
+
+- Windows (Chocolatey):
+
+  choco install ffmpeg
+
+==========================================
+✅ Step 5: Verify Installation
+==========================================
+Test if everything is installed correctly by running:
+
+  python -c "import essentia.standard as es; print('Essentia is working!')"
+
+If you see "Essentia is working!", the setup was successful.
+
+==========================================
+🚀 Step 6: Run the Feature Extraction Script
+==========================================
+Once everything is set up, extract features for a song by running:
+
+  python audio_extraction/test.py
+
+Make sure the song file is placed in the "audio_extraction/" directory before running the script.
+
+==========================================
+❓ Troubleshooting
+==========================================
+
+1. **Essentia Installation Issues**
+   - If you get an import error for Essentia, try reinstalling it:
+
+     pip uninstall essentia
+     pip install essentia==2.1b6.dev1177
+
+   - If NumPy version errors appear, install an older version:
+
+     pip install "numpy<2"
+
+2. **FFmpeg Not Found**
+   - Run `ffmpeg -version` to check if it's installed.
+   - If not, install it using the OS-specific commands above.
+
+==========================================
+🎯 You're All Set!
+==========================================
+Now you're ready to contribute to Resona! If you have any issues, ask in the group chat.

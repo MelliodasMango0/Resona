@@ -1,0 +1,6 @@
+numpy<2
+scipy
+essentia==2.1b6.dev1177
+pyyaml
+six
+ffmpeg-python

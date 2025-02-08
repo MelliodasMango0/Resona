@@ -1,32 +1,59 @@
 import essentia.standard as es
 import numpy as np
-import pickle
+import os
+import subprocess
 
-# Load the MP3 file
-audio = es.MonoLoader(filename="RALLY HOUSE — UNDERGROUND ⧸⧸ nuphory x THIRST [501Ck8eXpvs].mp3")()
+# Define file paths
+mp3_file = "/Users/melliodasmango0/Documents/Senior Year Spring/Resona/audio_extraction/rally_house_like_that.mp3"
+wav_file = "/Users/melliodasmango0/Documents/Senior Year Spring/Resona/audio_extraction/temp_like_that.wav"
 
-# Extract Features
-mfcc_extractor = es.MFCC()
-mfccs, _ = mfcc_extractor(audio)
+# Ensure file exists
+if not os.path.isfile(mp3_file):
+    raise FileNotFoundError(f"Error: File not found -> {mp3_file}")
 
-spectral_centroid = es.Centroid()(audio)
-spectral_bandwidth = es.SpectralBandwidth()(audio)
-zcr = es.ZeroCrossingRate()(audio)
-bpm, _ = es.RhythmExtractor2013(method="multifeature")(audio)
+# Convert MP3 to WAV for better compatibility
+if mp3_file.endswith(".mp3"):
+    print("Converting MP3 to WAV...")
+    subprocess.run(["ffmpeg", "-y", "-i", mp3_file, wav_file], check=True)
 
-# Aggregate Features
-mfcc_mean = np.mean(mfccs, axis=1)
-mfcc_var = np.var(mfccs, axis=1)
+# Extract features using MusicExtractor
+features, _ = es.MusicExtractor(
+    lowlevelStats=['mean', 'stdev'],
+    rhythmStats=['mean', 'stdev'],
+    tonalStats=['mean', 'stdev']
+)(wav_file)
 
-# Final Feature Vector
-feature_vector = np.concatenate([
-    mfcc_mean, mfcc_var,
-    [spectral_centroid, spectral_bandwidth, zcr],
-    [bpm]
-])
+# Define the expected feature structure
+expected_features = {
+    "rhythm.bpm": 1,
+    "lowlevel.spectral_centroid.mean": 1,
+    "lowlevel.spectral_contrast.mean": 1,
+    "lowlevel.mfcc.mean": 13,  # MFCC has 13 coefficients
+}
 
-# Save Feature Vector
-with open("song_features.pkl", "wb") as f:
-    pickle.dump(feature_vector, f)
+# Extract features while ensuring fixed-size vectors
+feature_values = []
+for feature, size in expected_features.items():
+    if feature in features.descriptorNames():  # Check if feature exists
+        value = features[feature]
+    else:
+        value = np.full(size, np.nan)  # Use NaN if feature is missing
+    
+    if isinstance(value, np.ndarray):
+        if len(value) >= size:
+            value = value[:size]  # Truncate if too long
+        else:
+            value = np.pad(value, (0, size - len(value)), constant_values=np.nan)  # Pad if too short
+    else:
+        value = np.array([value])  # Convert single values to arrays
+    feature_values.append(value)
 
-print("Feature Vector Created:", feature_vector.shape)
+# Final standardized feature vector
+feature_vector = np.concatenate(feature_values)
+print("Final Feature Vector Shape:", feature_vector.shape)
+print("Feature Vector:", feature_vector)
+
+# Cleanup temporary WAV file
+if os.path.exists(wav_file):
+    os.remove(wav_file)
+    print("Temporary WAV file deleted.")
