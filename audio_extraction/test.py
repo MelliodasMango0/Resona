@@ -1,59 +1,51 @@
-import essentia.standard as es
+import librosa
+import librosa.display
 import numpy as np
-import os
-import subprocess
+import matplotlib.pyplot as plt
 
-# Define file paths
-mp3_file = "/Users/melliodasmango0/Documents/Senior Year Spring/Resona/audio_extraction/rally_house_like_that.mp3"
-wav_file = "/Users/melliodasmango0/Documents/Senior Year Spring/Resona/audio_extraction/temp_like_that.wav"
+def plot_audio_features(file_path):
+    """Extracts and plots waveform, spectrogram, MFCCs, and chroma features."""
+    try:
+        print(f"Extracting and plotting features for: {file_path}")
 
-# Ensure file exists
-if not os.path.isfile(mp3_file):
-    raise FileNotFoundError(f"Error: File not found -> {mp3_file}")
+        # Load audio
+        y, sr = librosa.load(file_path, sr=22050)
 
-# Convert MP3 to WAV for better compatibility
-if mp3_file.endswith(".mp3"):
-    print("Converting MP3 to WAV...")
-    subprocess.run(["ffmpeg", "-y", "-i", mp3_file, wav_file], check=True)
+        # Compute features
+        mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+        chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+        spectrogram = librosa.feature.melspectrogram(y=y, sr=sr)
 
-# Extract features using MusicExtractor
-features, _ = es.MusicExtractor(
-    lowlevelStats=['mean', 'stdev'],
-    rhythmStats=['mean', 'stdev'],
-    tonalStats=['mean', 'stdev']
-)(wav_file)
+        # Create subplots
+        fig, ax = plt.subplots(4, 1, figsize=(10, 12))
 
-# Define the expected feature structure
-expected_features = {
-    "rhythm.bpm": 1,
-    "lowlevel.spectral_centroid.mean": 1,
-    "lowlevel.spectral_contrast.mean": 1,
-    "lowlevel.mfcc.mean": 13,  # MFCC has 13 coefficients
-}
+        # 1️⃣ Plot Waveform
+        librosa.display.waveshow(y, sr=sr, ax=ax[0])
+        ax[0].set(title="Waveform", xlabel="Time (s)", ylabel="Amplitude")
 
-# Extract features while ensuring fixed-size vectors
-feature_values = []
-for feature, size in expected_features.items():
-    if feature in features.descriptorNames():  # Check if feature exists
-        value = features[feature]
-    else:
-        value = np.full(size, np.nan)  # Use NaN if feature is missing
-    
-    if isinstance(value, np.ndarray):
-        if len(value) >= size:
-            value = value[:size]  # Truncate if too long
-        else:
-            value = np.pad(value, (0, size - len(value)), constant_values=np.nan)  # Pad if too short
-    else:
-        value = np.array([value])  # Convert single values to arrays
-    feature_values.append(value)
+        # 2️⃣ Plot Spectrogram
+        img = librosa.display.specshow(librosa.power_to_db(spectrogram, ref=np.max), sr=sr, x_axis="time", y_axis="mel", ax=ax[1])
+        ax[1].set(title="Mel Spectrogram")
+        fig.colorbar(img, ax=ax[1])
 
-# Final standardized feature vector
-feature_vector = np.concatenate(feature_values)
-print("Final Feature Vector Shape:", feature_vector.shape)
-print("Feature Vector:", feature_vector)
+        # 3️⃣ Plot MFCCs
+        img = librosa.display.specshow(mfccs, x_axis="time", sr=sr, ax=ax[2])
+        ax[2].set(title="MFCCs")
+        fig.colorbar(img, ax=ax[2])
 
-# Cleanup temporary WAV file
-if os.path.exists(wav_file):
-    os.remove(wav_file)
-    print("Temporary WAV file deleted.")
+        # 4️⃣ Plot Chroma Features
+        img = librosa.display.specshow(chroma, x_axis="time", y_axis="chroma", sr=sr, ax=ax[3])
+        ax[3].set(title="Chroma Features")
+        fig.colorbar(img, ax=ax[3])
+
+        # Show plots
+        plt.tight_layout()
+        plt.show()
+
+    except Exception as e:
+        print(f"Error visualizing features for {file_path}: {e}")
+
+# Run the function
+if __name__ == "__main__":
+    query_song = "songs/song.mp3"  # Change to your file
+    plot_audio_features(query_song)

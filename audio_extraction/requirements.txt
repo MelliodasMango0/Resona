@@ -1,0 +1,8 @@
+numpy
+scipy
+librosa
+soundfile
+audioread
+pydub
+scikit-learn
+faiss-cpu

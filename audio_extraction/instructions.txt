@@ -1,0 +1,162 @@
+==========================================  
+📌 **Prerequisites**  
+==========================================  
+Before setting up the project, ensure you have the following installed:
+
+- **Python 3.12** (Required for compatibility with all dependencies).  
+- **Git** (To clone the repository).  
+- **FFmpeg** (Required for audio processing).  
+
+To verify Python installation, run:  
+```sh
+python --version
+```
+To verify FFmpeg installation, run:  
+```sh
+ffmpeg -version
+```
+
+---
+
+==========================================  
+📥 **Step 1: Clone the Repository**  
+==========================================  
+1. Open a terminal or command prompt.  
+2. Run the following commands:  
+   ```sh
+   git clone https://github.com/your-repo/resona.git
+   cd resona
+   ```
+
+---
+
+==========================================  
+🛠 **Step 2: Set Up a Virtual Environment (Anaconda Recommended)**  
+==========================================  
+
+To avoid conflicts with system packages, set up an **Anaconda environment**:
+
+#### **For All Platforms (Recommended)**
+```sh
+conda create --name resona_env python=3.12
+conda activate resona_env
+```
+
+#### **Alternatively, using Virtualenv (Mac/Linux)**
+```sh
+python3 -m venv resona_env
+source resona_env/bin/activate
+```
+
+#### **Alternatively, using Virtualenv (Windows)**
+```sh
+python -m venv resona_env
+resona_env\Scripts\activate
+```
+
+---
+
+==========================================  
+📦 **Step 3: Install Dependencies**  
+==========================================  
+Once the environment is activated, install the required packages:  
+
+```sh
+pip install -r requirements.txt
+```
+
+If using Anaconda, install **FFmpeg separately**:  
+```sh
+conda install -c conda-forge ffmpeg
+```
+
+---
+
+==========================================  
+🎵 **Step 4: Install FFmpeg (If Not Installed)**  
+==========================================  
+FFmpeg is required for audio conversion. Install it based on your OS:
+
+- **Mac (Homebrew)**
+  ```sh
+  brew install ffmpeg
+  ```
+- **Ubuntu**
+  ```sh
+  sudo apt install ffmpeg
+  ```
+- **Windows (Chocolatey)**
+  ```sh
+  choco install ffmpeg
+  ```
+
+---
+
+==========================================  
+✅ **Step 5: Verify Installation**  
+==========================================  
+Test if everything is installed correctly by running:
+
+```sh
+python -c "import librosa; print('Librosa is working!')"
+```
+
+If you see `"Librosa is working!"`, the setup was successful.
+
+---
+
+==========================================  
+🚀 **Step 6: Run the Feature Extraction Script**  
+==========================================  
+Once everything is set up, extract features for a song by running:
+
+```sh
+python audio_extraction/test.py
+```
+
+Make sure your **song files are placed in the `songs/` directory** before running the script.
+
+---
+
+==========================================  
+❓ **Troubleshooting**  
+==========================================  
+
+1️⃣ **Librosa or NumPy Installation Issues**  
+   - If you get an import error for `librosa`, reinstall it:  
+     ```sh
+     pip install librosa numpy scipy soundfile audioread
+     ```
+   - If NumPy version errors appear, install an older version:  
+     ```sh
+     pip install "numpy<2"
+     ```
+
+2️⃣ **FFmpeg Not Found**  
+   - Run `ffmpeg -version` to check if it's installed.  
+   - If not, install it using the OS-specific commands above.  
+
+3️⃣ **Virtual Environment Not Recognized**  
+   - Ensure you **activate the environment** before running any commands:  
+     ```sh
+     conda activate resona_env  # For Anaconda
+     source resona_env/bin/activate  # For Mac/Linux Virtualenv
+     resona_env\Scripts\activate  # For Windows Virtualenv
+     ```
+
+---
+
+==========================================  
+🎯 **You're All Set!**  
+==========================================  
+Now you're ready to contribute to Resona! If you have any issues, ask in the group chat.
+
+---
+
+### **🔹 Changes & Improvements**
+✅ **Switched from Essentia to Librosa** for better cross-platform support.  
+✅ **Updated Python requirement to 3.12** to avoid `aifc` issues.  
+✅ **Recommended Anaconda for easier dependency management**.  
+✅ **Clarified installation & troubleshooting steps**.
+
+Would you like any **modifications** or additional **clarifications**? 🚀
