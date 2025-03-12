@@ -7,12 +7,23 @@ import json
 songs_dir = "songs"
 output_file = "song_features.json"
 
-# Dictionary to store features
-song_features = {}
+# Load existing features if the file exists
+if os.path.exists(output_file):
+    with open(output_file, "r") as f:
+        try:
+            song_features = json.load(f)
+        except json.JSONDecodeError:
+            song_features = {}  # Handle case where file is empty or corrupted
+else:
+    song_features = {}
 
 # Process each song in the directory
 for filename in os.listdir(songs_dir):
     if filename.endswith(".mp3") or filename.endswith(".wav"):  # Ensure it's an audio file
+        if filename in song_features:
+            print(f"Skipping {filename} (already processed)")
+            continue  # Skip if already processed
+
         song_path = os.path.join(songs_dir, filename)
         
         # Load the song
@@ -47,7 +58,7 @@ for filename in os.listdir(songs_dir):
 
         print(f"Processed {filename}")
 
-# Save features to a file
+# Save updated features to a file
 with open(output_file, "w") as f:
     json.dump(song_features, f, indent=4)
 
