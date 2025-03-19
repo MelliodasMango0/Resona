@@ -4,7 +4,7 @@ import os
 import json
 
 # Directory containing songs
-songs_dir = "songs"
+songs_dir = "music/rock"
 output_file = "song_features.json"
 
 # Load existing features if the file exists
