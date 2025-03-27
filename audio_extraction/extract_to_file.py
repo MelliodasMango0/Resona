@@ -2,10 +2,10 @@ import librosa
 import numpy as np
 import os
 import json
-
+from sklearn.preprocessing import StandardScaler
 # Directory containing songs
-songs_dir = "music/rock"
-output_file = "song_features.json"
+songs_dir = "music/rap"
+output_file = "song_features_ext.json"
 
 # Load existing features if the file exists
 if os.path.exists(output_file):
@@ -46,15 +46,15 @@ for filename in os.listdir(songs_dir):
         zcr_mean = np.mean(zcr).tolist()
         chroma_mean = np.mean(chroma, axis=1).tolist()
 
-        # Concatenate all features into a single vector
-        feature_vector = (
-            mfccs_mean + mfccs_var +  # MFCCs (13 + 13)
-            [spectral_centroid_mean, spectral_bandwidth_mean, zcr_mean] +  # Spectral (3)
-            chroma_mean  # Chroma (12)
-        )
+        feature_vector = mfccs.flatten()
+        #==== NEW ADDITION: FEATURE STANDARDIZATION =======
+        scaler = StandardScaler()
+        feature_vector = np.array(feature_vector)
+        feature_vector_standardized = scaler.fit_transform(feature_vector.reshape(-1, 1)).flatten()
+        feature_vector_standardized = feature_vector_standardized.tolist()
 
         # Store in dictionary
-        song_features[filename] = feature_vector
+        song_features[filename] = feature_vector_standardized
 
         print(f"Processed {filename}")
 

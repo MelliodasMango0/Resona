@@ -1,38 +1,49 @@
 import librosa
 import numpy as np
+import os
+import json
+from sklearn.preprocessing import StandardScaler
 
-# Load an MP3 or WAV file
-y, sr = librosa.load("songs/song.mp3", sr=None)
+# Directory containing songs
+songs_dir = "music/rock"
+output_file = "song_features_ext.json"
 
-# Extract MFCCs (Mel-Frequency Cepstral Coefficients)
-mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)  # Shape: (13, Time Frames)
+# Load existing features if the file exists
+if os.path.exists(output_file):
+    with open(output_file, "r") as f:
+        try:
+            song_features = json.load(f)
+        except json.JSONDecodeError:
+            song_features = {}  # Handle case where file is empty or corrupted
+else:
+    song_features = {}
 
-# Extract Spectral Features
-spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr)  # (1, Time Frames)
-spectral_bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)  # (1, Time Frames)
-zcr = librosa.feature.zero_crossing_rate(y)  # (1, Time Frames)
+# Process each song in the directory
+for filename in os.listdir(songs_dir):
+    if filename.endswith(".mp3") or filename.endswith(".wav"):  # Ensure it's an audio file
+        if filename in song_features:
+            print(f"Skipping {filename} (already processed)")
+            continue  # Skip if already processed
 
-# Extract Chroma Features
-chroma = librosa.feature.chroma_stft(y=y, sr=sr)  # (12, Time Frames)
+        song_path = os.path.join(songs_dir, filename)
+        
+        # Load the song
+        y, sr = librosa.load(song_path, sr=None)
+        
+        # Extract MFCCs (13 coefficients for each frame)
+        mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
 
-# Compute Mean and Variance for each feature across time
-mfccs_mean = np.mean(mfccs, axis=1)
-mfccs_var = np.var(mfccs, axis=1)
+        # Standardize MFCCs
+        scaler = StandardScaler()
+        mfccs_standardized = scaler.fit_transform(mfccs.T).T  # Transpose so that scaling is per feature
 
-spectral_centroid_mean = np.mean(spectral_centroid)
-spectral_bandwidth_mean = np.mean(spectral_bandwidth)
-zcr_mean = np.mean(zcr)
+        # Store the MFCC matrix for the song
+        song_features[filename] = mfccs_standardized.tolist()  # Storing as a 2D list
 
-chroma_mean = np.mean(chroma, axis=1)
+        print(f"Processed {filename}")
 
-# Concatenate all features into a single feature vector
-feature_vector = np.concatenate([
-    mfccs_mean, mfccs_var,  # MFCCs (13 + 13)
-    [spectral_centroid_mean, spectral_bandwidth_mean, zcr_mean],  # Spectral Features (3)
-    chroma_mean  # Chroma (12)
-])
+# Save updated features to a file
+with open(output_file, "w") as f:
+    json.dump(song_features, f, indent=4)
 
-print("Feature Vector Shape:", feature_vector.shape)  # Example: (41,)
-
-np.set_printoptions(threshold=np.inf)  # Ensures full array is printed
-print("Feature Vector:", feature_vector)
+print(f"Feature extraction complete. Data saved in {output_file}.")

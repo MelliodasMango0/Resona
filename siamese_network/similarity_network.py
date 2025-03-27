@@ -56,8 +56,8 @@ class SiameseDataset(Dataset):
 
 # === CREATE DATALOADERS ===
 batch_size = 32
-train_dataset = SiameseDataset("train.csv", "song_features.json")
-test_dataset = SiameseDataset("test.csv", "song_features.json")
+train_dataset = SiameseDataset("train.csv", "song_features_std.json")
+test_dataset = SiameseDataset("test.csv", "song_features_std.json")
 
 def collate_fn(batch):
     batch = [b for b in batch if b is not None]  # ✅ Filter out None
@@ -80,12 +80,12 @@ class SimilarityClassifier(nn.Module):
     def __init__(self, input_dim=41):
         super(SimilarityClassifier, self).__init__()
         self.fc = nn.Sequential(
-            nn.Linear(input_dim, 128),
+            nn.Linear(input_dim, 64),
             nn.ReLU(),
-            nn.Linear(128, 64),
-            nn.ReLU(),
+            nn.BatchNorm1d(64),  # Adding batch normalization,
             nn.Linear(64, 32),
             nn.ReLU(),
+            nn.BatchNorm1d(32),  # Adding batch normalization
             nn.Linear(32, 1),
             nn.Sigmoid()  # Outputs a probability
         )
@@ -96,7 +96,8 @@ class SimilarityClassifier(nn.Module):
 # === LOSS FUNCTION & OPTIMIZER ===
 loss_function = nn.BCELoss()  # Binary Cross-Entropy Loss
 classifier = SimilarityClassifier()
-optimizer = optim.SGD(classifier.parameters(), lr=0.01, momentum=0.9)  # Stochastic Gradient Descent (SGD)
+#optimizer = optim.SGD(classifier.parameters(), lr=0.01, momentum=0.9)  # Stochastic Gradient Descent (SGD)
+optimizer = optim.Adam(classifier.parameters(), lr=0.001)  # Adam with a lower learning rate
 
 
 # === TRAINING FUNCTION ===
@@ -127,7 +128,7 @@ def train_model(model, train_loader, loss_function, optimizer, train_dataset, nu
 
 
 # === TRAIN MODEL ===
-num_epochs = 25
+num_epochs = 100
 train_model(classifier, train_loader, loss_function, optimizer, train_dataset, num_epochs)
 
 # === TESTING FUNCTION ===
