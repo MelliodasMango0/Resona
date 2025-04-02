@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resona</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">Resona</div>
+    <nav>
+      <a href="#">About</a>
+      <a href="#">GitHub</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Left Panel -->
+    <section class="left-panel">
+      <div class="upload-box">
+        <p>Drag & Drop your song here</p>
+        <input type="file" id="fileInput" />
+        <button id="playBtn">▶️ Play Sample</button>
+        <button id="analyzeBtn">🔍 Find Similar</button>
+      </div>
+    </section>
+
+    <!-- Right Panel -->
+    <section class="right-panel">
+      <h2>Recommendations will appear here</h2>
+      <div class="recommendations" id="recommendationList">      
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Resona &copy; 2025</p>
+  </footer>
+</body>
+</html>

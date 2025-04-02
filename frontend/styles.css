@@ -1,0 +1,125 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  body {
+    background-color: #121212;
+    color: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  header {
+    background-color: #1e1e1e;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  header .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  header nav a {
+    margin-left: 1.5rem;
+    color: #ccc;
+    text-decoration: none;
+  }
+  
+  .container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+  
+  .left-panel, .right-panel {
+    padding: 2rem;
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .left-panel {
+    background-color: #1e1e1e;
+    border-right: 1px solid #333;
+  }
+  
+  .upload-box {
+    border: 2px dashed #444;
+    padding: 2rem;
+    text-align: center;
+    border-radius: 10px;
+  }
+  
+  .upload-box input[type="file"] {
+    margin: 1rem 0;
+  }
+  
+  .upload-box button {
+    margin: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #292929;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .right-panel {
+    background-color: #161616;
+  }
+  
+  .recommendations {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+  
+  .song-card {
+    display: flex;
+    gap: 1rem;
+    background-color: #252525;
+    padding: 1rem;
+    border-radius: 10px;
+    align-items: center;
+  }
+  
+  .song-card img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  .song-info {
+    flex: 1;
+  }
+  
+  .song-info h3 {
+    margin-bottom: 0.3rem;
+  }
+  
+  .song-info button {
+    margin-top: 0.5rem;
+    margin-right: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #3a3a3a;
+    color: #fff;
+    cursor: pointer;
+  }
+  
+  footer {
+    padding: 0.8rem;
+    text-align: left;
+    font-size: 0.85rem;
+  }
+  
