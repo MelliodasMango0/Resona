@@ -7,17 +7,29 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+
+  <!-- Animated Background -->
+  <video autoplay muted loop playsinline class="background-video">
+    <source src="videos/ResonaAnimatedBackground.mp4" type="video/mp4" />
+  </video>
+    
+  <!-- Header -->
   <header>
-    <div class="logo">Resona</div>
+    <div class="header-left">
+      <div class="logo">Resona</div>
+      <p class="tagline">Find your sound through AI-powered recommendations</p>
+    </div>
     <nav>
       <a href="#">About</a>
-      <a href="#">GitHub</a>
+      <a href="https://github.com/MelliodasMango0/Resona" target="_blank">GitHub</a>
     </nav>
   </header>
-
+  
+  <!-- Main Container -->
   <main class="container">
     <!-- Left Panel -->
     <section class="left-panel">
+      <h2>Upload a Song</h2>
       <div class="upload-box">
         <p>Drag & Drop your song here</p>
         <input type="file" id="fileInput" />
@@ -28,14 +40,20 @@
 
     <!-- Right Panel -->
     <section class="right-panel">
-      <h2>Recommendations will appear here</h2>
-      <div class="recommendations" id="recommendationList">      
+      <h2>Recommendations</h2>
+      <div class="recommendations">
+        <div class="song-card placeholder">
+          <div class="image-placeholder shimmer"></div>
+          <div class="info-placeholder shimmer"></div>
+        </div>
       </div>
     </section>
   </main>
 
+  <!-- Footer -->
   <footer>
     <p>Resona &copy; 2025</p>
   </footer>
+
 </body>
 </html>
