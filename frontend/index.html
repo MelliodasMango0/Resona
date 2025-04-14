@@ -32,7 +32,9 @@
       <h2>Upload a Song</h2>
       <div class="upload-box">
         <p>Drag & Drop your song here</p>
-        <input type="file" id="fileInput" />
+        <!-- ✅ Restrict to audio formats -->
+        <input type="file" id="fileInput" accept=".mp3,.wav,.m4a" />
+        <div id="previewArea">/</div>
         <button id="playBtn">▶️ Play Sample</button>
         <button id="analyzeBtn">🔍 Find Similar</button>
       </div>
@@ -55,5 +57,7 @@
     <p>Resona &copy; 2025</p>
   </footer>
 
+  <!-- ✅ JavaScript Entry (module) -->
+  <script type="module" src="app.js"></script>
 </body>
 </html>

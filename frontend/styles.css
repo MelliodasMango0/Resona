@@ -212,3 +212,8 @@ header, main, footer {
   filter: blur(2px) brightness(0.8);
   pointer-events: none;
 }
+
+#previewArea {
+  margin-bottom: 1rem;
+}
+
