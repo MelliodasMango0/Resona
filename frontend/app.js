@@ -3,7 +3,6 @@ import { enrichWithItunesData, getPreviewForUploadedSong } from './itunes.js';
 
 const fileInput = document.getElementById("fileInput");
 const playBtn = document.getElementById("playBtn");
-const analyzeBtn = document.getElementById("analyzeBtn");
 const leftPanel = document.querySelector(".upload-box");
 const rightPanel = document.querySelector(".recommendations");
 
@@ -15,15 +14,21 @@ fileInput.addEventListener("change", async (e) => {
   if (!file) return;
 
   const baseName = file.name
-  .replace(/\.[^/.]+$/, '') // Remove file extension
-  .replace(/[-_]/g, ' ')     // Replace dashes/underscores with spaces
-  .trim();
-  uploadedSongData = await getPreviewForUploadedSong(baseName, file.name);
+    .replace(/\.[^/.]+$/, '') // Remove file extension
+    .replace(/[-_]/g, ' ')     // Replace dashes/underscores with spaces
+    .trim();
 
-  if (!uploadedSongData) {
-    leftPanel.innerHTML = `<p>Could not find preview for this song.</p>`;
+  const previewData = await getPreviewForUploadedSong(baseName);
+
+  if (!previewData) {
+    renderLeftPanelError();
     return;
   }
+
+  uploadedSongData = {
+    ...previewData,
+    filename: file.name
+  };
 
   renderLeftPanel(uploadedSongData);
 });
@@ -36,28 +41,54 @@ playBtn.addEventListener("click", () => {
   }
 });
 
-// === ANALYZE BUTTON HANDLER ===
-analyzeBtn.addEventListener("click", async () => {
-  if (!uploadedSongData?.title) return;
+// === ANALYZE LOGIC ===
+async function handleAnalyze(song) {
+  if (!song?.title) return;
 
   showLoading();
-  const rawRecs = await getRecommendations(uploadedSongData.title);
+  const rawRecs = await getRecommendations(song.title, song.filename || "");
   const enriched = await Promise.all(rawRecs.map(enrichWithItunesData));
   renderRecommendations(enriched);
-});
+}
 
 // === RENDER LEFT PANEL ===
 function renderLeftPanel(song) {
-    const previewArea = document.getElementById("previewArea");
-  
-    previewArea.innerHTML = `
-      <img src="${song.artwork}" width="100" style="border-radius:8px;margin-bottom:1rem"/>
-      <h3>${song.title}</h3>
-      <p>${song.artist}</p>
-      <audio controls src="${song.previewUrl}"></audio>
-    `;
-  }
-  
+  const panel = document.querySelector(".upload-box");
+  panel.innerHTML = `
+    <img src="${song.artwork}" width="100" style="border-radius:8px;margin-bottom:1rem"/>
+    <h3>${song.title}</h3>
+    <p>${song.artist}</p>
+    <audio controls src="${song.previewUrl}"></audio>
+    <br />
+    <button id="analyzeBtn">🔍 Find Similar</button>
+    <button id="resetBtn">⏹ Reset</button>
+  `;
+
+  document.getElementById("analyzeBtn").onclick = () => handleAnalyze(song);
+  document.getElementById("resetBtn").onclick = () => window.location.reload();
+}
+
+function renderLeftPanelError() {
+  const panel = document.querySelector(".upload-box");
+  panel.innerHTML = `
+    <p style="color:#ccc; margin-bottom: 0.5rem;">⚠️ Could not find preview for this song.</p>
+    <p style="color:#888;">Try uploading a different file.</p>
+    <input type="file" id="fileInput" />
+  `;
+
+  document.getElementById("fileInput").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
+    const previewData = await getPreviewForUploadedSong(baseName);
+
+    if (previewData) {
+      uploadedSongData = { ...previewData, filename: file.name };
+      renderLeftPanel(uploadedSongData);
+    } else {
+      renderLeftPanelError();
+    }
+  });
+}
 
 // === RENDER RIGHT PANEL ===
 function renderRecommendations(list) {
