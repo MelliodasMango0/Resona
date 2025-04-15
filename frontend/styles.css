@@ -217,3 +217,26 @@ header, main, footer {
   margin-bottom: 1rem;
 }
 
+/* Add spacing between song elements inside the upload-box */
+.upload-box img {
+  margin-bottom: 1rem;
+}
+
+.upload-box h3 {
+  margin: 0.5rem 0 0.2rem;
+}
+
+.upload-box p {
+  margin-bottom: 1rem;
+  font-weight: 300;
+}
+
+.upload-box audio {
+  margin-bottom: 1rem;
+}
+
+.upload-box button {
+  margin: 0 0.3rem;
+}
+
+
