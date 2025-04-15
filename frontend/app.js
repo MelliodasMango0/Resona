@@ -58,15 +58,37 @@ function renderLeftPanel(song) {
     <img src="${song.artwork}" width="100" style="border-radius:8px;margin-bottom:1rem"/>
     <h3>${song.title}</h3>
     <p>${song.artist}</p>
-    <audio controls src="${song.previewUrl}"></audio>
+    <audio controls src="${song.previewUrl}" style="margin-bottom: 1rem;"></audio>
     <br />
     <button id="analyzeBtn">🔍 Find Similar</button>
-    <button id="resetBtn">⏹ Reset</button>
+    <button id="uploadAnotherBtn">📂 Upload Another Song</button>
+    <input type="file" id="reUploadInput" style="display:none" />
   `;
 
   document.getElementById("analyzeBtn").onclick = () => handleAnalyze(song);
-  document.getElementById("resetBtn").onclick = () => window.location.reload();
+  
+  // Re-upload logic
+  const reUploadInput = document.getElementById("reUploadInput");
+  document.getElementById("uploadAnotherBtn").onclick = () => {
+    reUploadInput.click();
+  };
+
+  reUploadInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
+    const previewData = await getPreviewForUploadedSong(baseName);
+
+    if (previewData) {
+      uploadedSongData = { ...previewData, filename: file.name };
+      renderLeftPanel(uploadedSongData);
+    } else {
+      renderLeftPanelError();
+    }
+  });
 }
+
 
 function renderLeftPanelError() {
   const panel = document.querySelector(".upload-box");
@@ -127,3 +149,47 @@ function showLoading() {
     </div>
   `;
 }
+// === RESET ON LOAD ===
+window.onload = () => {
+  if (fileInput) fileInput.value = "";
+  uploadedSongData = null;
+
+  // Optional: clear left panel manually if needed
+  const panel = document.querySelector(".upload-box");
+  if (panel) {
+    panel.innerHTML = `
+      <p>Drag & Drop your song here</p>
+      <input type="file" id="fileInput" />
+      <button id="playBtn">▶️ Play Sample</button>
+      <button id="analyzeBtn">🔍 Find Similar</button>
+    `;
+
+    // Rebind event listeners
+    document.getElementById("fileInput").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
+      const previewData = await getPreviewForUploadedSong(baseName);
+
+      if (previewData) {
+        uploadedSongData = { ...previewData, filename: file.name };
+        renderLeftPanel(uploadedSongData);
+      } else {
+        renderLeftPanelError();
+      }
+    });
+
+    document.getElementById("playBtn").addEventListener("click", () => {
+      if (uploadedSongData?.previewUrl) {
+        const audio = new Audio(uploadedSongData.previewUrl);
+        audio.play();
+      }
+    });
+
+    document.getElementById("analyzeBtn").addEventListener("click", () => {
+      if (uploadedSongData?.title) handleAnalyze(uploadedSongData);
+    });
+  }
+};
+
