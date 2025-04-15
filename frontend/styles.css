@@ -1,3 +1,4 @@
+/* ========== GLOBAL STYLES ========== */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -6,13 +7,14 @@
 }
 
 body {
-  background-color: #121212;
+  background-color: #121212; /* dark mode base */
   color: #f0f0f0;
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
 
+/* ========== HEADER ========== */
 header {
   background-color: #1e1e1e;
   padding: 1rem 2rem;
@@ -32,7 +34,7 @@ header {
   font-weight: bold;
 }
 
-.tagline {
+tagline {
   font-size: 0.9rem;
   color: #aaa;
   font-weight: 300;
@@ -44,6 +46,7 @@ header nav a {
   text-decoration: none;
 }
 
+/* ========== MAIN CONTAINER ========== */
 .container {
   display: flex;
   flex: 1;
@@ -83,6 +86,7 @@ header nav a {
   animation: fadeInRight 1s ease-in-out;
 }
 
+/* ========== ANIMATIONS ========== */
 @keyframes fadeInLeft {
   from { opacity: 0; transform: translateX(-30px); }
   to { opacity: 1; transform: translateX(0); }
@@ -93,6 +97,7 @@ header nav a {
   to { opacity: 1; transform: translateX(0); }
 }
 
+/* ========== UPLOAD BOX ========== */
 .upload-box {
   position: relative;
   background: rgba(30, 30, 30, 0.5);
@@ -100,9 +105,8 @@ header nav a {
   border-radius: 16px;
   backdrop-filter: blur(12px);
   padding: 2rem;
-  margin: 1rem 0;
+  margin: 1rem auto;
   text-align: center;
-  border-radius: 10px;
   box-shadow: 0 0 20px rgba(0, 255, 128, 0.1);
   max-height: 100%;
   height: auto;
@@ -114,7 +118,6 @@ header nav a {
   transition: transform 0.3s ease;
   width: 100%;
   max-width: 100%;
-  margin: 1rem auto;
   box-sizing: border-box;
 }
 
@@ -127,24 +130,37 @@ header nav a {
   margin: 1rem 0;
 }
 
-button {
-  background-color: #1db954;
-  color: #fff;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  border: none;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 0 5px rgba(29, 185, 84, 0.3);
+.upload-box img {
+  width: 50%;
+  max-width: 300px;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 0 auto 1.5rem auto;
+  display: block;
 }
 
-button:hover {
-  background-color: #17a44d;
-  transform: scale(1.03);
-  box-shadow: 0 0 8px rgba(29, 185, 84, 0.5);
+.upload-box h3 {
+  margin: 0.5rem 0 0.2rem;
 }
 
+.upload-box p {
+  margin-bottom: 1rem;
+  font-weight: 300;
+}
+
+.upload-box audio {
+  margin-bottom: 1rem;
+  width: 100%;
+  border-radius: 5px;
+}
+
+.upload-box button {
+  margin: 0 0.3rem;
+}
+
+/* ========== RECOMMENDATION LIST ========== */
 .recommendations {
   display: flex;
   flex-direction: column;
@@ -155,21 +171,19 @@ button:hover {
 .song-card {
   display: flex;
   gap: 1rem;
-  background: rgba(30, 30, 30, 0.5); 
+  background: rgba(30, 30, 30, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(12px);
   box-shadow: 0 0 12px rgba(0, 255, 128, 0.05);
   padding: 1rem;
   border-radius: 10px;
   align-items: center;
-  
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .song-card:hover {
   transform: scale(1.02);
   box-shadow: 0 0 20px rgba(0, 255, 128, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-
 }
 
 .song-card img {
@@ -205,6 +219,7 @@ button:hover {
   border-radius: 5px;
 }
 
+/* ========== PLACEHOLDER / LOADING STATE ========== */
 .shimmer {
   background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
   background-size: 200% 100%;
@@ -228,12 +243,14 @@ button:hover {
   border-radius: 6px;
 }
 
+/* ========== FOOTER ========== */
 footer {
   padding: 0.8rem;
   text-align: left;
   font-size: 0.85rem;
 }
 
+/* ========== UTILITY LAYOUT ========== */
 header, main, footer {
   position: relative;
   z-index: 1;
@@ -256,38 +273,7 @@ header, main, footer {
   margin-bottom: 1rem;
 }
 
-/* Add spacing between song elements inside the upload-box */
-.upload-box img {
-  width: 50%;
-  max-width: 300px;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: 12px;
-  margin: 0 auto 1.5rem auto;
-  display: block;
-}
-
-
-.upload-box h3 {
-  margin: 0.5rem 0 0.2rem;
-}
-
-.upload-box p {
-  margin-bottom: 1rem;
-  font-weight: 300;
-}
-
-.upload-box audio {
-  margin-bottom: 1rem;
-  width: 100%;
-  border-radius: 5px;
-}
-
-.upload-box button {
-  margin: 0 0.3rem;
-}
-
+/* ========== MATCH SCORE COLOR SYSTEM ========== */
 .match-score {
   font-weight: bold;
   font-size: 0.95rem;
@@ -311,7 +297,3 @@ header, main, footer {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-
-
-
-
