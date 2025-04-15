@@ -112,7 +112,12 @@ function renderLeftPanelError() {
   });
 }
 
-// === RENDER RIGHT PANEL ===
+function getMatchClass(score) {
+  if (score >= 90) return "match-high";
+  if (score >= 80) return "match-medium";
+  return "match-low";
+}
+
 function renderRecommendations(list) {
   rightPanel.innerHTML = "";
 
@@ -124,7 +129,9 @@ function renderRecommendations(list) {
       <div class="song-info">
         <h3>${song.title}</h3>
         <p>${song.artist} • ${song.genre}</p>
-        <p><strong>${song.matchScore}% match</strong></p>
+        <p class="match-score ${getMatchClass(song.matchScore)}">
+          ${song.matchScore}% match
+        </p>
         ${song.previewUrl ? `<audio controls src="${song.previewUrl}"></audio>` : ""}
       </div>
     `;
@@ -132,23 +139,23 @@ function renderRecommendations(list) {
   });
 }
 
+
+
 // === SHOW LOADING PLACEHOLDER ===
 function showLoading() {
-  rightPanel.innerHTML = `
-    <div class="song-card placeholder">
+  rightPanel.innerHTML = "";
+
+  for (let i = 0; i < 5; i++) {
+    const placeholder = document.createElement("div");
+    placeholder.className = "song-card placeholder";
+    placeholder.innerHTML = `
       <div class="image-placeholder shimmer"></div>
       <div class="info-placeholder shimmer"></div>
-    </div>
-    <div class="song-card placeholder">
-      <div class="image-placeholder shimmer"></div>
-      <div class="info-placeholder shimmer"></div>
-    </div>
-    <div class="song-card placeholder">
-      <div class="image-placeholder shimmer"></div>
-      <div class="info-placeholder shimmer"></div>
-    </div>
-  `;
+    `;
+    rightPanel.appendChild(placeholder);
+  }
 }
+
 // === RESET ON LOAD ===
 window.onload = () => {
   if (fileInput) fileInput.value = "";
