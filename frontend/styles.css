@@ -68,7 +68,7 @@ header nav a {
   border-radius: 16px;
   backdrop-filter: blur(4px);
   padding: 2rem;
-  margin: 1rem;
+  margin: 0;
   overflow-y: auto;
   flex: 1;
   animation-fill-mode: both;
@@ -94,9 +94,11 @@ header nav a {
 }
 
 .upload-box {
+  position: relative;
   background-color: #1e1e1e;
   border: 2px dashed #444;
   padding: 2rem;
+  margin: 1rem 0;
   text-align: center;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -166,6 +168,12 @@ button:hover {
   cursor: pointer;
 }
 
+.song-info audio {
+  margin-top: 0.5rem;
+  width: 100%;
+  border-radius: 5px;
+}
+
 .shimmer {
   background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
   background-size: 200% 100%;
@@ -233,6 +241,8 @@ header, main, footer {
 
 .upload-box audio {
   margin-bottom: 1rem;
+  width: 100%;
+  border-radius: 5px;
 }
 
 .upload-box button {
