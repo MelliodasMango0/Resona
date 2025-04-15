@@ -102,6 +102,11 @@ header nav a {
   text-align: center;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  height: 70%;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
 }
 
 .upload-box input[type="file"] {
@@ -227,8 +232,17 @@ header, main, footer {
 
 /* Add spacing between song elements inside the upload-box */
 .upload-box img {
-  margin-bottom: 1rem;
+  width: 50%;
+  max-width: 300px;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 0 auto 1.5rem auto;
+  display: block;
 }
+
+
 
 .upload-box h3 {
   margin: 0.5rem 0 0.2rem;

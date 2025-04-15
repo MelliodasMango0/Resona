@@ -16,7 +16,7 @@ export async function getRecommendations(songTitle, songFileName) {
     
     Now, suggest exactly 5 **sonically similar songs** based only on acoustic features such as rhythm, tempo, instrumentation, harmony, energy, or mood.
     
-    Avoid using lyrics, popularity, or genre names alone to guess similarity. If unsure, lean on sound traits.
+    Avoid using lyrics, popularity, or genre names alone to guess similarity. If unsure, lean on sound traits. Make sure the recommendations are offictial releases, not remixes or covers and that they are able to be found on apple music.
     
     Return only the results in valid JSON format like:
     

@@ -57,7 +57,7 @@ function renderLeftPanel(song) {
   panel.innerHTML = `
     <img src="${song.artwork}" width="100" style="border-radius:8px;margin-bottom:1rem"/>
     <h3>${song.title}</h3>
-    <p>${song.artist}</p>
+    <p>${song.artist} • ${song.genre}</p>
     <audio controls src="${song.previewUrl}" style="margin-bottom: 1rem;"></audio>
     <br />
     <button id="analyzeBtn">🔍 Find Similar</button>
