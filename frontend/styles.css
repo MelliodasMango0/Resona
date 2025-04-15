@@ -95,18 +95,32 @@ header nav a {
 
 .upload-box {
   position: relative;
-  background-color: #1e1e1e;
-  border: 2px dashed #444;
+  background: rgba(30, 30, 30, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
   padding: 2rem;
   margin: 1rem 0;
   text-align: center;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  height: 70%;
+  box-shadow: 0 0 20px rgba(0, 255, 128, 0.1);
+  max-height: 100%;
+  height: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: start;
   align-items: center;
+  transition: transform 0.3s ease;
+  width: 100%;
+  max-width: 100%;
+  margin: 1rem auto;
+  box-sizing: border-box;
+}
+
+.upload-box:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 30px rgba(0, 255, 128, 0.2);
 }
 
 .upload-box input[type="file"] {
@@ -122,6 +136,7 @@ button {
   font-weight: 500;
   cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 0 5px rgba(29, 185, 84, 0.3);
 }
 
 button:hover {
@@ -140,17 +155,28 @@ button:hover {
 .song-card {
   display: flex;
   gap: 1rem;
-  background-color: #252525;
+  background: rgba(30, 30, 30, 0.5); 
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 12px rgba(0, 255, 128, 0.05);
   padding: 1rem;
   border-radius: 10px;
   align-items: center;
+  
+}
+
+.song-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 20px rgba(0, 255, 128, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
 }
 
 .song-card img {
   width: 80px;
   height: 80px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .song-info {
@@ -243,7 +269,6 @@ header, main, footer {
 }
 
 
-
 .upload-box h3 {
   margin: 0.5rem 0 0.2rem;
 }
@@ -262,5 +287,8 @@ header, main, footer {
 .upload-box button {
   margin: 0 0.3rem;
 }
+
+
+
 
 
