@@ -11,13 +11,10 @@ export async function getRecommendations(songTitle, songFileName) {
 
     const prompt = `
     A user uploaded a song titled "${songTitle}". The full filename was: "${songFileName}".
-    
     Please use this context to disambiguate what version or artist it may be — for example, if it's "My Way" by Limp Bizkit (metal/rock) and not "My Way" by Frank Sinatra (jazz).
-    
     Now, suggest exactly 5 **sonically similar songs** based only on acoustic features such as rhythm, tempo, instrumentation, harmony, energy, or mood.
-    
-    Avoid using lyrics, popularity, or genre names alone to guess similarity. If unsure, lean on sound traits. Make sure the recommendations are offictial releases, not remixes or covers and that they are able to be found on apple music.
-    
+    Avoid using lyrics, popularity, or genre names alone to guess similarity. If unsure, lean on sound traits. Make sure the recommendations are offictial releases, 
+    not remixes or covers and that they are able to be found on apple music.
     Return only the results in valid JSON format like:
     
     [
@@ -30,7 +27,6 @@ export async function getRecommendations(songTitle, songFileName) {
     ]
     `;
     
-
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
