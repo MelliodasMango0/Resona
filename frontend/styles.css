@@ -160,6 +160,26 @@ header nav a {
   margin: 0 0.3rem;
 }
 
+/* ========== BUTTON STYLES ========== */
+button {
+  background-color: #1db954; /* Spotify green */
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 0 5px rgba(29, 185, 84, 0.3);
+}
+
+button:hover {
+  background-color: #17a44d;
+  transform: scale(1.03);
+  box-shadow: 0 0 8px rgba(29, 185, 84, 0.5);
+}
+
+
 /* ========== RECOMMENDATION LIST ========== */
 .recommendations {
   display: flex;
