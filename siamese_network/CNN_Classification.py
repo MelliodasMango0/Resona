@@ -185,27 +185,6 @@ def train_model(model, train_loader, loss_function, optimizer, num_epochs=25):
         print(f"Epoch [{epoch+1}/{num_epochs}] | Loss: {avg_loss:.4f} | Accuracy: {accuracy:.4f}")
 
     return loss_history, acc_history
-
-
-# Train the model
-num_epochs = 25
-losses, accuracies = train_model(model, train_loader, loss_function, optimizer, num_epochs)
-
-#save this model to import later
-
-#============ THIS IS THE ORIGINAL MODEL (TRAINED ON ONLY 700 SAMPLES) ==================#
-#                   torch.save(model.state_dict(), "siamese_model.pth")
-
-
-#=========== THIS IS VERSION 1.02, TRAINED ON 3500 PAIRS OF SONGS ==================#
-torch.save(model, "full_model_1250samples.pth")
-
-#ensure that we can safely import the network from our state_dict for later use in the application's backend
-model = SiameseNet(input_shape=(1, 13, 100), fc_output_dim=256).to(device)
-model.load_state_dict(torch.load("full_model_1250samples.pth"))
-model.eval()
-
-# Evaluate function
 def evaluate_model(model, test_loader):
     model.eval()
     total = 0
@@ -228,29 +207,48 @@ def evaluate_model(model, test_loader):
     acc = correct / total
     print(f"Test Accuracy: {acc:.4f}")
     return acc
+if __name__ == "__main__":
+    # Train the model
+    num_epochs = 25
+    losses, accuracies = train_model(model, train_loader, loss_function, optimizer, num_epochs)
 
-#=========== CODE TO PRODUCE A PLOT OF TRAINING LOSS AND ACCURACY PER EPOCH ================#
-plt.figure(figsize=(12, 5))
+    #save this model to import later
 
-# Plot loss
-plt.subplot(1, 2, 1)
-plt.plot(losses, label="Loss", marker='o')
-plt.title("Training Loss")
-plt.xlabel("Epoch")
-plt.ylabel("Loss")
-plt.grid(True)
+    #============ THIS IS THE ORIGINAL MODEL (TRAINED ON ONLY 700 SAMPLES) ==================#
+    #                   torch.save(model.state_dict(), "siamese_model.pth")
 
-# Plot accuracy
-plt.subplot(1, 2, 2)
-plt.plot(accuracies, label="Accuracy", color="orange", marker='o')
-plt.title("Training Accuracy")
-plt.xlabel("Epoch")
-plt.ylabel("Accuracy")
-plt.grid(True)
 
-plt.tight_layout()
-plt.show()
+    #=========== THIS IS VERSION 1.02, TRAINED ON 3500 PAIRS OF SONGS ==================#
+    torch.save(model, "full_model_1250samples.pth")
 
-# Evaluate the model
-evaluate_model(model, test_loader)
+    #ensure that we can safely import the network from our state_dict for later use in the application's backend
+    model = SiameseNet(input_shape=(1, 13, 100), fc_output_dim=256).to(device)
+    model.load_state_dict(torch.load("full_model_1250samples.pth"))
+    model.eval()
+
+    # Evaluate function
+    #=========== CODE TO PRODUCE A PLOT OF TRAINING LOSS AND ACCURACY PER EPOCH ================#
+    plt.figure(figsize=(12, 5))
+
+    # Plot loss
+    plt.subplot(1, 2, 1)
+    plt.plot(losses, label="Loss", marker='o')
+    plt.title("Training Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.grid(True)
+
+    # Plot accuracy
+    plt.subplot(1, 2, 2)
+    plt.plot(accuracies, label="Accuracy", color="orange", marker='o')
+    plt.title("Training Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+    # Evaluate the model
+    evaluate_model(model, test_loader)
 
