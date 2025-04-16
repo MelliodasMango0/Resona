@@ -6,7 +6,7 @@ import psycopg2
 # PostgreSQL connection config
 DB_NAME = "resona_db"
 DB_USER = "postgres"
-# DB_PASSWORD = 
+#DB_PASSWORD =
 DB_HOST = "localhost"
 DB_PORT = "5432"
 
@@ -86,7 +86,7 @@ for genre in os.listdir(music_root):
 
             # Insert song with artist, title, genre, and features
             cursor.execute("""
-                INSERT INTO songs (title, artists, genre, feature_vector)
+                INSERT INTO songs (title, artists, genre, features)
                 VALUES (%s, %s, %s, %s)
             """, (title, artist, genre, vector_str))
 
