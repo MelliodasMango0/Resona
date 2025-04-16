@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 DATASET_FILE = "dataset.txt"
 TRAIN_FILE = "train.txt"
 TEST_FILE = "test.txt"
-TEST_SIZE = 0.3  # 20% test split
+TEST_SIZE = 0.3  # 30% test split
 
 # === LOAD DATASET ===
 print("Loading dataset...")

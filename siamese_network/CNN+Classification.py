@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, Dataset
 import json
 import csv
@@ -149,49 +150,59 @@ else:
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 
 # Training function
-def train_model(model, train_loader, loss_function, optimizer, num_epochs=10):
+def train_model(model, train_loader, loss_function, optimizer, num_epochs=25):
     model.train()
+    loss_history = []
+    acc_history = []
 
     for epoch in range(num_epochs):
         total_loss = 0
-        processed = 0
         correct = 0
+        processed = 0
 
         for batch in train_loader:
             if batch is None:
                 continue
             x1, x2, y = batch
             x1, x2, y = x1.to(device), x2.to(device), y.to(device)
+
             optimizer.zero_grad()
             y_pred = model(x1, x2).squeeze()
-
             loss = loss_function(y_pred, y)
             loss.backward()
             optimizer.step()
 
             total_loss += loss.item()
-
-            # Accuracy
             predicted = (torch.sigmoid(y_pred) > 0.5).float()
-            correct += (predicted == y).float().sum().item()
+            correct += (predicted == y).sum().item()
             processed += y.size(0)
 
-        acc = correct / processed
         avg_loss = total_loss / len(train_loader)
-        print(f"Epoch [{epoch+1}/{num_epochs}] | Loss: {avg_loss:.4f} | Accuracy: {acc:.4f}")
+        accuracy = correct / processed
+        loss_history.append(avg_loss)
+        acc_history.append(accuracy)
 
+        print(f"Epoch [{epoch+1}/{num_epochs}] | Loss: {avg_loss:.4f} | Accuracy: {accuracy:.4f}")
+
+    return loss_history, acc_history
 
 
 # Train the model
 num_epochs = 25
-train_model(model, train_loader, loss_function, optimizer, num_epochs)
+losses, accuracies = train_model(model, train_loader, loss_function, optimizer, num_epochs)
 
 #save this model to import later
-torch.save(model.state_dict(), "siamese_model.pth")
 
-#ensure that we can safely import the network for later use
+#============ THIS IS THE ORIGINAL MODEL (TRAINED ON ONLY 700 SAMPLES) ==================#
+#                   torch.save(model.state_dict(), "siamese_model.pth")
+
+
+#=========== THIS IS VERSION 1.02, TRAINED ON 3500 PAIRS OF SONGS ==================#
+torch.save(model, "full_model_1250samples.pth")
+
+#ensure that we can safely import the network from our state_dict for later use in the application's backend
 model = SiameseNet(input_shape=(1, 13, 100), fc_output_dim=256).to(device)
-model.load_state_dict(torch.load("siamese_model.pth"))
+model.load_state_dict(torch.load("full_model_1250samples.pth"))
 model.eval()
 
 # Evaluate function
@@ -217,6 +228,28 @@ def evaluate_model(model, test_loader):
     acc = correct / total
     print(f"Test Accuracy: {acc:.4f}")
     return acc
+
+#=========== CODE TO PRODUCE A PLOT OF TRAINING LOSS AND ACCURACY PER EPOCH ================#
+plt.figure(figsize=(12, 5))
+
+# Plot loss
+plt.subplot(1, 2, 1)
+plt.plot(losses, label="Loss", marker='o')
+plt.title("Training Loss")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.grid(True)
+
+# Plot accuracy
+plt.subplot(1, 2, 2)
+plt.plot(accuracies, label="Accuracy", color="orange", marker='o')
+plt.title("Training Accuracy")
+plt.xlabel("Epoch")
+plt.ylabel("Accuracy")
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
 
 # Evaluate the model
 evaluate_model(model, test_loader)
