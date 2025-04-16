@@ -13,6 +13,9 @@ DB_PORT = "5432"
 # Path to the base music directory (each subfolder is a genre)
 music_root = "music"
 
+# Character that splits the artist and title in the filename
+DELIMITER = '~'
+
 # Connect to PostgreSQL
 conn = psycopg2.connect(
     dbname=DB_NAME,
@@ -58,25 +61,34 @@ for genre in os.listdir(music_root):
         if not filename.lower().endswith((".mp3", ".wav", ".flac", ".ogg")):
             continue
 
-        title = os.path.splitext(filename)[0]
-        file_path = os.path.join(genre_path, filename)
-
         try:
-            # Check if the song is already in the database
-            cursor.execute("SELECT 1 FROM songs WHERE title = %s AND genre = %s", (title, genre))
-            if cursor.fetchone():
-                print(f"⚠️  Skipping {title} in genre '{genre}' (already in database)")
+
+            name = os.path.splitext(filename)[0]
+            file_path = os.path.join(genre_path, filename)
+
+            if DELIMITER not in name:
+                print(f"⚠️ Skipping {filename} (missing delimiter '{DELIMITER}')")
                 continue
 
-            print(f"Processing {title} in genre '{genre}'...")
+            artist, title = map(str.strip, name.split(DELIMITER, 1))
+
+            # Check if the song is already in the database
+            cursor.execute("""
+                SELECT 1 FROM songs WHERE title = %s AND artists = %s AND genre = %s
+            """, (title, artist, genre))
+            if cursor.fetchone():
+                print(f"⚠️ Skipping '{artist} {DELIMITER} {title}' in genre '{genre}' (already in database)")
+                continue
+
+            print(f"🎵 Processing '{artist} {DELIMITER} {title}' in genre '{genre}'...")
             features = extract_feature_vector(file_path)
             vector_str = "[" + ", ".join([f"{v:.6f}" for v in features]) + "]"
 
-            # Insert into the database
+            # Insert song with artist, title, genre, and features
             cursor.execute("""
-                INSERT INTO songs (title, genre, features)
-                VALUES (%s, %s, %s)
-            """, (title, genre, vector_str))
+                INSERT INTO songs (title, artists, genre, feature_vector)
+                VALUES (%s, %s, %s, %s)
+            """, (title, artist, genre, vector_str))
 
             conn.commit()
 
