@@ -132,98 +132,104 @@ async function renderLeftPanel(song) {
   });
 }
 
-// === SETUP VISUALIZER FUNCTION ===
 function setupVisualizer(audioElement, canvas) {
   if (!audioElement || !canvas) return;
-  
-  // Get canvas context
-  const canvasCtx = canvas.getContext('2d');
-  
-  // Create a fresh audio context each time
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const analyser = audioCtx.createAnalyser();
-  analyser.fftSize = 128;
-  
-  // Create media source from audio element
-  const source = audioCtx.createMediaElementSource(audioElement);
+
+  const ctx = canvas.getContext('2d');
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const analyser = audioContext.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0.7;
+
+  const source = audioContext.createMediaElementSource(audioElement);
   source.connect(analyser);
-  analyser.connect(audioCtx.destination);
-  
-  // Create data array for visualization
+  analyser.connect(audioContext.destination);
+
   const bufferLength = analyser.frequencyBinCount;
   const dataArray = new Uint8Array(bufferLength);
-  
-  // Animation frame ID for cleanup
-  let animationId = null;
-  
-  // Draw function that gets called repeatedly
-  function draw() {
-    // Set dimensions
+
+  let animationId = null; // ✅ needed to cancel animation
+
+  function drawCenterLineOnly() {
     canvas.width = canvas.clientWidth || 300;
     canvas.height = canvas.clientHeight || 60;
-    
-    // Request next frame first
-    animationId = requestAnimationFrame(draw);
-    
-    // Get frequency data
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const centerY = canvas.height / 2;
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, centerY);
+    ctx.lineTo(canvas.width, centerY);
+    ctx.stroke();
+  }
+
+  function draw() {
+    animationId = requestAnimationFrame(draw); // ✅ store ID to cancel it
+
     analyser.getByteFrequencyData(dataArray);
-    
-    // Clear canvas with semi-transparent black for trails
-    canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Calculate bar width and spacing
-    const barWidth = (canvas.width / bufferLength) * 2;
-    const barSpacing = 1;
+
+    canvas.width = canvas.clientWidth || 300;
+    canvas.height = canvas.clientHeight || 60;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const centerY = canvas.height / 2;
+
+    // Red axis
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, centerY);
+    ctx.lineTo(canvas.width, centerY);
+    ctx.stroke();
+
+    // Gradient fill
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    gradient.addColorStop(0, 'red');
+    gradient.addColorStop(0.2, 'orange');
+    gradient.addColorStop(0.4, 'yellow');
+    gradient.addColorStop(0.6, 'green');
+    gradient.addColorStop(0.8, 'blue');
+    gradient.addColorStop(1, 'violet');
+    ctx.fillStyle = gradient;
+
+    const barWidth = canvas.width / bufferLength;
     let x = 0;
-    
-    // Draw bars
+
     for (let i = 0; i < bufferLength; i++) {
-      // Skip some bars for aesthetics
-      if (i % 2 !== 0) continue;
-      
-      // Calculate bar height based on frequency data
-      const barHeight = dataArray[i] * (canvas.height / 255) * 0.7;
-      
-      // Vibrant color gradient based on frequency
-      const hue = 120 + (i / bufferLength * 180);
-      canvasCtx.fillStyle = `hsl(${hue}, 80%, 50%)`;
-      
-      // Draw the bar
-      canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-      
-      // Move to next bar position
-      x += barWidth + barSpacing;
+      const v = dataArray[i] / 128.0;
+      const barHeight = (v - 1) * canvas.height * 0.4;
+
+      ctx.fillRect(x, centerY, barWidth, barHeight);
+      ctx.fillRect(x, centerY, barWidth, -barHeight);
+      x += barWidth;
     }
   }
-  
-  // Handle play/pause/stop events
+
   audioElement.addEventListener('play', () => {
-    // Resume context if suspended
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-    
-    // Start drawing
-    draw();
+    audioContext.resume();
+    draw(); // ✅ start drawing
   });
-  
+
   audioElement.addEventListener('pause', () => {
-    // Stop animation
     if (animationId) {
       cancelAnimationFrame(animationId);
       animationId = null;
     }
+    drawCenterLineOnly();
   });
-  
+
   audioElement.addEventListener('ended', () => {
-    // Stop animation
     if (animationId) {
       cancelAnimationFrame(animationId);
       animationId = null;
     }
+    drawCenterLineOnly();
   });
+
+  drawCenterLineOnly(); // draw red axis on load
 }
+
 
 function renderLeftPanelError() {
   const panel = document.querySelector(".upload-box");
