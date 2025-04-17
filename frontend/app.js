@@ -259,10 +259,106 @@ function getMatchClass(score) {
   return "match-low";
 }
 
+function setupMiniVisualizer(audioElement, canvas) {
+  const ctx = canvas.getContext('2d');
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0.7;
+
+  const source = audioCtx.createMediaElementSource(audioElement);
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+
+  let animationId = null;
+
+  function drawCenterLineOnly() {
+    canvas.width = canvas.clientWidth || 80;
+    canvas.height = canvas.clientHeight || 30;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const centerY = canvas.height / 2;
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, centerY);
+    ctx.lineTo(canvas.width, centerY);
+    ctx.stroke();
+  }
+
+  function draw() {
+    animationId = requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(dataArray);
+
+    canvas.width = canvas.clientWidth || 80;
+    canvas.height = canvas.clientHeight || 30;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const centerY = canvas.height / 2;
+
+    // Red axis
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, centerY);
+    ctx.lineTo(canvas.width, centerY);
+    ctx.stroke();
+
+    // Gradient
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    gradient.addColorStop(0, 'red');
+    gradient.addColorStop(0.25, 'yellow');
+    gradient.addColorStop(0.5, 'lime');
+    gradient.addColorStop(0.75, 'cyan');
+    gradient.addColorStop(1, 'magenta');
+    ctx.fillStyle = gradient;
+
+    const barWidth = canvas.width / bufferLength;
+    let x = 0;
+
+    for (let i = 0; i < bufferLength; i++) {
+      const v = dataArray[i] / 128.0;
+      const barHeight = (v - 1) * canvas.height * 0.4;
+
+      ctx.fillRect(x, centerY, barWidth, barHeight);
+      ctx.fillRect(x, centerY, barWidth, -barHeight);
+      x += barWidth;
+    }
+  }
+
+  audioElement.addEventListener('play', () => {
+    audioCtx.resume();
+    draw();
+  });
+
+  audioElement.addEventListener('pause', () => {
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+    drawCenterLineOnly();
+  });
+
+  audioElement.addEventListener('ended', () => {
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+    drawCenterLineOnly();
+  });
+
+  drawCenterLineOnly();
+}
+
+
 function renderRecommendations(list) {
   rightPanel.innerHTML = "";
 
-  list.forEach(song => {
+  list.forEach(async (song) => {
     const card = document.createElement("div");
     card.className = "song-card";
     card.innerHTML = `
@@ -273,12 +369,31 @@ function renderRecommendations(list) {
         <p class="match-score ${getMatchClass(song.matchScore)}">
           ${song.matchScore}% match
         </p>
-        ${song.previewUrl ? `<audio controls src="${song.previewUrl}"></audio>` : ""}
+        <canvas class="mini-visualizer" width="80" height="30"></canvas>
+        <audio class="rec-audio" controls></audio>
       </div>
     `;
+
     rightPanel.appendChild(card);
+
+    const audio = card.querySelector('.rec-audio');
+    const canvas = card.querySelector('.mini-visualizer');
+
+    try {
+      // Fetch blob version of the preview audio
+      const res = await fetch(song.previewUrl);
+      const blob = await res.blob();
+      const localUrl = URL.createObjectURL(blob);
+      audio.src = localUrl;
+
+      // Now it's safe to create the visualizer
+      setupMiniVisualizer(audio, canvas);
+    } catch (err) {
+      console.error("Error loading preview blob for:", song.title, err);
+    }
   });
 }
+
 
 // === SHOW LOADING PLACEHOLDER ===
 function showLoading() {
