@@ -26,12 +26,19 @@ export async function enrichWithItunesData(song) {
 
     if (data.results.length === 0) return song;
 
-    const result = data.results[0];
+    const match = data.results.find(result =>
+      result.trackName.toLowerCase().includes(song.title.toLowerCase()) &&
+      result.artistName.toLowerCase().includes(song.artist.toLowerCase())
+    );
+    
+    if (!match) return song; // fallback to raw song data
+    
     return {
       ...song,
-      previewUrl: result.previewUrl || null,
-      artwork: result.artworkUrl100 || result.artworkUrl60 || null
+      previewUrl: match.previewUrl || null,
+      artwork: match.artworkUrl100 || match.artworkUrl60 || null
     };
+    
   } catch (err) {
     console.error("❌ Failed to enrich with iTunes:", err);
     return song;
@@ -42,11 +49,11 @@ export async function enrichWithItunesData(song) {
 /**
  * Gets preview/audio/artwork for the uploaded song using just the filename/title
  */
-export async function getPreviewForUploadedSong(query) {
-  const safeQuery = sanitizeQuery(query);
-  const url = `https://itunes.apple.com/search?term=${encodeURIComponent(safeQuery)}&entity=song&limit=1`;
+export async function getPreviewForUploadedSong(title, artist) {
+  const query = sanitizeQuery(`${title} ${artist}`);
+  const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=1`;
 
-  console.log(`🎵 Searching iTunes for uploaded song: ${safeQuery}`);
+  console.log(`🎵 Searching iTunes for uploaded song: ${query}`);
 
   try {
     const res = await fetch(url);

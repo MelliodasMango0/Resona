@@ -13,12 +13,16 @@ fileInput.addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  const baseName = file.name
-    .replace(/\.[^/.]+$/, '') // Remove file extension
-    .replace(/[-_]/g, ' ')     // Replace dashes/underscores with spaces
-    .trim();
+  const baseName = file.name.replace(/\.[^/.]+$/, '').trim();
 
-  const previewData = await getPreviewForUploadedSong(baseName);
+  if (!baseName.includes("~")) {
+    console.warn("⚠️ Filename does not include artist~title format");
+    return;
+  }
+
+  const [artist, title] = baseName.split("~").map(s => s.trim());
+  const previewData = await getPreviewForUploadedSong(title, artist);
+
 
   if (!previewData) {
     renderLeftPanelError();
@@ -46,7 +50,7 @@ async function handleAnalyze(song) {
   if (!song?.title) return;
 
   showLoading();
-  const rawRecs = await getRecommendations(song.title, song.filename || "");
+  const rawRecs = await getRecommendations(song.title, song.artist, song.filename || "");
   const enriched = await Promise.all(rawRecs.map(enrichWithItunesData));
   renderRecommendations(enriched);
 }
@@ -66,7 +70,7 @@ function renderLeftPanel(song) {
   `;
 
   document.getElementById("analyzeBtn").onclick = () => handleAnalyze(song);
-  
+
   // Re-upload logic
   const reUploadInput = document.getElementById("reUploadInput");
   document.getElementById("uploadAnotherBtn").onclick = () => {
@@ -77,8 +81,14 @@ function renderLeftPanel(song) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
-    const previewData = await getPreviewForUploadedSong(baseName);
+    const baseName = file.name.replace(/\.[^/.]+$/, "").trim();
+    if (!baseName.includes("~")) {
+      console.warn("⚠️ Filename does not include artist~title format");
+      return;
+    }
+
+    const [artist, title] = baseName.split("~").map(s => s.trim());
+    const previewData = await getPreviewForUploadedSong(title, artist);
 
     if (previewData) {
       uploadedSongData = { ...previewData, filename: file.name };
@@ -88,6 +98,7 @@ function renderLeftPanel(song) {
     }
   });
 }
+
 
 
 function renderLeftPanelError() {
@@ -100,8 +111,16 @@ function renderLeftPanelError() {
 
   document.getElementById("fileInput").addEventListener("change", async (e) => {
     const file = e.target.files[0];
-    const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
-    const previewData = await getPreviewForUploadedSong(baseName);
+    if (!file) return;
+
+    const baseName = file.name.replace(/\.[^/.]+$/, "").trim();
+    if (!baseName.includes("~")) {
+      console.warn("⚠️ Filename does not include artist~title format");
+      return;
+    }
+
+    const [artist, title] = baseName.split("~").map(s => s.trim());
+    const previewData = await getPreviewForUploadedSong(title, artist);
 
     if (previewData) {
       uploadedSongData = { ...previewData, filename: file.name };
@@ -111,6 +130,7 @@ function renderLeftPanelError() {
     }
   });
 }
+
 
 function getMatchClass(score) {
   if (score >= 90) return "match-high";
@@ -176,8 +196,14 @@ window.onload = () => {
       const file = e.target.files[0];
       if (!file) return;
 
-      const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
-      const previewData = await getPreviewForUploadedSong(baseName);
+      const baseName = file.name.replace(/\.[^/.]+$/, "").trim();
+      if (!baseName.includes("~")) {
+        console.warn("⚠️ Filename does not include artist~title format");
+        return;
+      }
+
+      const [artist, title] = baseName.split("~").map(s => s.trim());
+      const previewData = await getPreviewForUploadedSong(title, artist);
 
       if (previewData) {
         uploadedSongData = { ...previewData, filename: file.name };

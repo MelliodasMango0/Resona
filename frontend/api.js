@@ -4,13 +4,13 @@ import { OPENAI_API_KEY } from './openaiConfig.js';
 const isMock = false; // Toggle this for demo/dev mode
 
 // prompting gpt to return the similar songs
-export async function getRecommendations(songTitle, songFileName) {
+export async function getRecommendations(songTitle, songArtist, songFileName) {
     if (isMock) {
         return new Promise((res) => setTimeout(() => res(mockRecommendations), 1000));
     }
 
     const prompt = `
-    A user uploaded a song titled "${songTitle}". The full filename was: "${songFileName}".
+    A user uploaded a song titled "${songTitle}" by "${songArtist}". The full filename was: "${songFileName}".
     Please use this context to disambiguate what version or artist it may be — for example, if it's "My Way" by Limp Bizkit (metal/rock) and not "My Way" by Frank Sinatra (jazz).
     Now, suggest exactly 5 **sonically similar songs** based only on acoustic features such as rhythm, tempo, instrumentation, harmony, energy, or mood.
     Avoid using lyrics, popularity, or genre names alone to guess similarity. If unsure, lean on sound traits. Make sure the recommendations are offictial releases, 
