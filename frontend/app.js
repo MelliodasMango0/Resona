@@ -7,6 +7,14 @@ const leftPanel = document.querySelector(".upload-box");
 const rightPanel = document.querySelector(".recommendations");
 
 let uploadedSongData = null;
+let currentlyPlayingAudio = null;
+
+function pauseCurrentAudio() {
+  if (currentlyPlayingAudio && !currentlyPlayingAudio.paused) {
+    currentlyPlayingAudio.pause();
+  }
+}
+
 
 // === HANDLE FILE UPLOAD ===
 fileInput.addEventListener("change", async (e) => {
@@ -207,6 +215,8 @@ function setupVisualizer(audioElement, canvas) {
   }
 
   audioElement.addEventListener('play', () => {
+    pauseCurrentAudio(); // Pause any currently playing audio
+    currentlyPlayingAudio = audioElement; // Set the currently playing audio
     audioContext.resume();
     draw(); // ✅ start drawing
   });
@@ -331,6 +341,8 @@ function setupMiniVisualizer(audioElement, canvas) {
   }
 
   audioElement.addEventListener('play', () => {
+    pauseCurrentAudio(); // Pause any currently playing audio
+    currentlyPlayingAudio = audioElement; // Set the currently playing audio
     audioCtx.resume();
     draw();
   });
