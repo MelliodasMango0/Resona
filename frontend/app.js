@@ -14,7 +14,7 @@ fileInput.addEventListener("change", async (e) => {
   if (!file) return;
 
   const baseName = file.name
-    .replace(/\.[^/.]+$/, '') // Remove file extension
+    .replace(/\.[^/.]+$/, '')   // Remove file extension
     .replace(/[-_]/g, ' ')     // Replace dashes/underscores with spaces
     .trim();
 
@@ -34,10 +34,32 @@ fileInput.addEventListener("change", async (e) => {
 });
 
 // === PLAY BUTTON HANDLER ===
-playBtn.addEventListener("click", () => {
+playBtn.addEventListener("click", async () => {
   if (uploadedSongData?.previewUrl) {
-    const audio = new Audio(uploadedSongData.previewUrl);
-    audio.play();
+    const panel = document.querySelector(".upload-box");
+    panel.innerHTML = `
+      <img src="${uploadedSongData.artwork}" width="100" style="border-radius:8px;margin-bottom:1rem"/>
+      <h3>${uploadedSongData.title}</h3>
+      <p>${uploadedSongData.artist} • ${uploadedSongData.genre}</p>
+      <div class="audio-container">
+        <audio id="songAudio" controls src="${uploadedSongData.previewUrl}"></audio>
+        <canvas id="audioVisualizer" width="300" height="60"></canvas>
+      </div>
+      <br />
+      <button id="analyzeBtn">🔍 Find Similar</button>
+      <button id="uploadAnotherBtn">📂 Upload Another Song</button>
+      <input type="file" id="reUploadInput" style="display:none" />
+    `;
+
+    // Get references to the elements
+    const audioElement = document.getElementById("songAudio");
+    const canvas = document.getElementById("audioVisualizer");
+    
+    setupVisualizer(audioElement, canvas);
+    
+    // Add button event listeners
+    document.getElementById("analyzeBtn").onclick = () => handleAnalyze(uploadedSongData);
+    
   }
 });
 
@@ -52,18 +74,39 @@ async function handleAnalyze(song) {
 }
 
 // === RENDER LEFT PANEL ===
-function renderLeftPanel(song) {
+async function renderLeftPanel(song) {
   const panel = document.querySelector(".upload-box");
   panel.innerHTML = `
     <img src="${song.artwork}" width="100" style="border-radius:8px;margin-bottom:1rem"/>
     <h3>${song.title}</h3>
     <p>${song.artist} • ${song.genre}</p>
-    <audio controls src="${song.previewUrl}" style="margin-bottom: 1rem;"></audio>
+    <div class="audio-container">
+      <audio id="songAudio" controls></audio>
+      <canvas id="audioVisualizer" width="300" height="60"></canvas>
+    </div>
     <br />
     <button id="analyzeBtn">🔍 Find Similar</button>
     <button id="uploadAnotherBtn">📂 Upload Another Song</button>
     <input type="file" id="reUploadInput" style="display:none" />
   `;
+
+  // Set up the visualizer after the audio element is rendered
+  const audioElement = document.getElementById("songAudio");
+  // Fetch the audio preview and convert to blob to avoid CORS issues
+  try {
+    const res = await fetch(song.previewUrl);
+    const blob = await res.blob();
+    const localUrl = URL.createObjectURL(blob);
+    audioElement.src = localUrl;
+
+    // Setup visualizer with blob-based local audio
+    const canvas = document.getElementById("audioVisualizer");
+    setupVisualizer(audioElement, canvas);
+  } catch (err) {
+    console.error("Failed to fetch preview audio as blob:", err);
+  }
+
+  const canvas = document.getElementById("audioVisualizer");
 
   document.getElementById("analyzeBtn").onclick = () => handleAnalyze(song);
   
@@ -89,6 +132,98 @@ function renderLeftPanel(song) {
   });
 }
 
+// === SETUP VISUALIZER FUNCTION ===
+function setupVisualizer(audioElement, canvas) {
+  if (!audioElement || !canvas) return;
+  
+  // Get canvas context
+  const canvasCtx = canvas.getContext('2d');
+  
+  // Create a fresh audio context each time
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 128;
+  
+  // Create media source from audio element
+  const source = audioCtx.createMediaElementSource(audioElement);
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+  
+  // Create data array for visualization
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  
+  // Animation frame ID for cleanup
+  let animationId = null;
+  
+  // Draw function that gets called repeatedly
+  function draw() {
+    // Set dimensions
+    canvas.width = canvas.clientWidth || 300;
+    canvas.height = canvas.clientHeight || 60;
+    
+    // Request next frame first
+    animationId = requestAnimationFrame(draw);
+    
+    // Get frequency data
+    analyser.getByteFrequencyData(dataArray);
+    
+    // Clear canvas with semi-transparent black for trails
+    canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Calculate bar width and spacing
+    const barWidth = (canvas.width / bufferLength) * 2;
+    const barSpacing = 1;
+    let x = 0;
+    
+    // Draw bars
+    for (let i = 0; i < bufferLength; i++) {
+      // Skip some bars for aesthetics
+      if (i % 2 !== 0) continue;
+      
+      // Calculate bar height based on frequency data
+      const barHeight = dataArray[i] * (canvas.height / 255) * 0.7;
+      
+      // Vibrant color gradient based on frequency
+      const hue = 120 + (i / bufferLength * 180);
+      canvasCtx.fillStyle = `hsl(${hue}, 80%, 50%)`;
+      
+      // Draw the bar
+      canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+      
+      // Move to next bar position
+      x += barWidth + barSpacing;
+    }
+  }
+  
+  // Handle play/pause/stop events
+  audioElement.addEventListener('play', () => {
+    // Resume context if suspended
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    
+    // Start drawing
+    draw();
+  });
+  
+  audioElement.addEventListener('pause', () => {
+    // Stop animation
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+  });
+  
+  audioElement.addEventListener('ended', () => {
+    // Stop animation
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+  });
+}
 
 function renderLeftPanelError() {
   const panel = document.querySelector(".upload-box");
@@ -139,8 +274,6 @@ function renderRecommendations(list) {
   });
 }
 
-
-
 // === SHOW LOADING PLACEHOLDER ===
 function showLoading() {
   rightPanel.innerHTML = "";
@@ -161,7 +294,7 @@ window.onload = () => {
   if (fileInput) fileInput.value = "";
   uploadedSongData = null;
 
-  // Optional: clear left panel manually if needed
+  // Clear left panel
   const panel = document.querySelector(".upload-box");
   if (panel) {
     panel.innerHTML = `
@@ -171,7 +304,7 @@ window.onload = () => {
       <button id="analyzeBtn">🔍 Find Similar</button>
     `;
 
-    // Rebind event listeners
+    // Rebind file input event listener
     document.getElementById("fileInput").addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -184,13 +317,6 @@ window.onload = () => {
         renderLeftPanel(uploadedSongData);
       } else {
         renderLeftPanelError();
-      }
-    });
-
-    document.getElementById("playBtn").addEventListener("click", () => {
-      if (uploadedSongData?.previewUrl) {
-        const audio = new Audio(uploadedSongData.previewUrl);
-        audio.play();
       }
     });
 
