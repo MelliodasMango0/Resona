@@ -1,0 +1,57 @@
+============================
+🎧 Resona Frontend Setup Guide
+============================
+
+Follow these steps to run the Resona frontend and test the audio recommendation system.
+
+----------------------------------
+✅ 1. Clone the repository
+----------------------------------
+git clone https://github.com/YOUR_USERNAME/Resona.git
+cd Resona
+
+----------------------------------
+✅ 2. Install Node dependencies
+----------------------------------
+npm install
+
+----------------------------------
+✅ 3. Create a .env file in the root directory
+----------------------------------
+This file is used to securely store Spotify API credentials for the proxy.
+
+Create a file named `.env` and add the following lines:
+
+SPOTIFY_CLIENT_ID=your-spotify-client-id
+SPOTIFY_CLIENT_SECRET=your-spotify-client-secret
+
+(Replace with valid credentials from https://developer.spotify.com/dashboard/applications)
+
+----------------------------------
+✅ 4. Start the Spotify proxy server
+----------------------------------
+node spotify-proxy.js
+
+This will start a local proxy server at:
+http://localhost:3001
+
+Leave this server running while using the frontend.
+
+----------------------------------
+✅ 5. Launch the frontend
+----------------------------------
+Open the `index.html` file in your web browser.
+
+You can now:
+- Upload an `.mp3`, `.wav`, or `.m4a` file
+- Click "▶️ Play Sample"
+- Click "🔍 Find Similar" to view recommendations
+
+----------------------------------
+🧠 Additional Notes
+----------------------------------
+- Audio previews are pulled from the iTunes API.
+- Album artwork is fetched from Spotify using the local proxy server.
+- Your `.env` file is ignored by Git (see `.gitignore`) to protect sensitive data.
+- Do NOT commit your client secret or credentials.
+
