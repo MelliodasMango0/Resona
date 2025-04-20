@@ -1,0 +1,27 @@
+{
+  "name": "resona",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Resona is a deep learning network that aims to generate feature-based/content-based predictions and recommendations. What this means practilly is that this is a system\r that tries to use MP3 files, of known songs in a database, to compare it to other known songs in a database and recommend the \"most similar\" songs.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MelliodasMango0/Resona.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MelliodasMango0/Resona/issues"
+  },
+  "homepage": "https://github.com/MelliodasMango0/Resona#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2"
+  }
+}
