@@ -32,6 +32,7 @@ def pad_tensor(tensor, length):
     pad_amt = length - tensor.shape[2]
     return F.pad(tensor, (0, pad_amt))
 
+# === Takes file path and return features of the song ===
 def extract_features_from_file(filepath):
     y, sr = librosa.load(filepath, sr=None)
     mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
@@ -39,7 +40,7 @@ def extract_features_from_file(filepath):
     mfccs_standardized = scaler.fit_transform(mfccs.T).T  # [13, T]
     return mfccs_standardized
 
-# ===== MAIN LOOP =====
+# === MAIN LOOP ===
 while True:
     query_path = input("\n🎧 Enter path to your song file (or 'exit'): ").strip()
     if query_path.lower() == "exit":
