@@ -1,0 +1,15 @@
+If you're on widnows go to environment variables and create a new one called 
+
+NUMBA_DISABLE_CACHE
+
+and assign 1 as the value, press okay. Thjen restart vscode and all your terminals 
+
+You can run this on your terminal with an mp3 to see if it actually works with that and doesnt get stuck
+
+python siamese_network/recommend_from_file.py <path-to-file>
+
+Should take no more than 30 secs to finish up on a decent cpu
+
+If that works then run the spotify-proxy.js and run server.js
+
+Run index.html and it should be working, should take 30 secs once again 

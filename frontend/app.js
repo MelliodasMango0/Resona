@@ -1,7 +1,15 @@
-import { getRecommendations } from './api.js';
-import { enrichWithItunesData, getPreviewForUploadedSong } from './itunes.js';
-import { getLocalRecommendationsFromFile } from './api.js';
-import { enrichRecommendedSong } from './itunes.js';
+import {
+  getLocalRecommendationsFromFile,
+  getRecommendations,
+  disambiguateUploadedSong
+} from './api.js';
+
+import {
+  enrichWithItunesData,
+  getPreviewForUploadedSong,
+  enrichRecommendedSong
+} from './itunes.js';
+
 
 const fileInput = document.getElementById("fileInput");
 const playBtn = document.getElementById("playBtn");
@@ -104,8 +112,38 @@ async function handleAnalyze(song) {
     console.log("Getting Local Recommendations");
     const rawRecs = await getLocalRecommendationsFromFile(song.originalFile);
     console.log("Got Local Recommendations");
-    const enriched = await Promise.all(rawRecs.map(enrichRecommendedSong));
+    // const enriched = await Promise.all(rawRecs.map(enrichRecommendedSong));
+    // renderRecommendations(enriched);
+    const enriched = await Promise.all(
+      rawRecs.map(async (rec) => {
+        try {
+          // Call disambiguation
+          const disambig = await disambiguateUploadedSong(rec.title, `${rec.artist} ~ ${rec.title}`);
+    
+          // Merge disambiguated info
+          const enriched = {
+            ...rec,
+            title: disambig?.title || rec.title,
+            artist: disambig?.artist || rec.artist,
+            genre: disambig?.genre || 'Unknown',
+          };
+    
+          // Fetch iTunes preview & Spotify artwork
+          const itunesData = await getPreviewForUploadedSong(`${enriched.artist} ${enriched.title}`);
+          return {
+            ...enriched,
+            previewUrl: itunesData?.previewUrl || '',
+            artwork: itunesData?.artwork || '',
+          };
+        } catch (err) {
+          console.error("Failed to enrich song:", rec, err);
+          return rec; // fallback to basic info
+        }
+      })
+    );
+    
     renderRecommendations(enriched);
+    
   } catch (err) {
     console.error("Recommendation error:", err);
     alert("Something went wrong during recommendation.");

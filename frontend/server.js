@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -109,27 +110,37 @@ app.post('/recommend', upload.single('file'), (req, res) => {
 
   python.on("close", (code) => {
     console.log("Python exited with code:", code);
-    fs.unlinkSync(filePath);  // clean up the uploaded file
-
+  
     if (code !== 0) {
+      console.error("Python script failed:", errorOutput);
       return res.status(500).json({
         error: "Python script failed",
         stderr: errorOutput
       });
     }
-
+  
     try {
-      const parsed = JSON.parse(output);  // ✅ parse only when Python is fully done
-      res.json(parsed);  // ✅ success
+      // Safely extract JSON from the full output
+      const matches = output.match(/\[\s*\{[\s\S]*?\}\s*\]/); // Regex to extract a JSON array
+  
+      if (!matches || matches.length === 0) {
+        throw new Error("No valid JSON found in Python output");
+      }
+  
+      const parsed = JSON.parse(matches[0]);
+      res.json(parsed);
     } catch (err) {
-      console.error("Failed to parse Python output:", output);
+      console.error("Failed to parse Python output:", err.message);
       res.status(500).json({
         error: "Invalid JSON from Python",
         raw: output
       });
     }
-  });
+  });  
 });
+  
+
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 
 app.listen(PORT, () => {

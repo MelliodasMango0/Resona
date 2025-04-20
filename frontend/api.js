@@ -14,7 +14,11 @@ export async function getLocalRecommendationsFromFile(file) {
     body: formData,
   });
 
-  if (!res.ok) throw new Error("Recommendation server failed");
+  if (!res.ok) {
+    const errText = await res.text(); // add this to see what's wrong
+    console.error("Backend responded with error:", errText);
+    throw new Error("Recommendation server failed");
+  }
 
   return await res.json(); // [{ title, artist, matchScore }]
 }
