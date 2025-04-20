@@ -3,11 +3,14 @@ import express from 'express';
 import fetch from 'node-fetch';
 import cors from 'cors';
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 const app = express();
 const PORT = 3001;
 
-const clientId = 'df18606c34634d53b54a6da720c75d0e';
-const clientSecret = '0139389ffb5a4d059c5df0ce9fcb99bf';
+const clientId = process.env.SPOTIFY_CLIENT_ID;
+const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
