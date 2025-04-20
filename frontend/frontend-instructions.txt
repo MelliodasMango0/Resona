@@ -25,7 +25,7 @@ Create a file named `.env` and add the following lines:
 SPOTIFY_CLIENT_ID=your-spotify-client-id
 SPOTIFY_CLIENT_SECRET=your-spotify-client-secret
 
-(Replace with valid credentials from https://developer.spotify.com/dashboard/applications)
+Ask Jose for credentials or just make them yourself here https://developer.spotify.com/dashboard/applications
 
 ----------------------------------
 ✅ 4. Start the Spotify proxy server
@@ -54,4 +54,3 @@ You can now:
 - Album artwork is fetched from Spotify using the local proxy server.
 - Your `.env` file is ignored by Git (see `.gitignore`) to protect sensitive data.
 - Do NOT commit your client secret or credentials.
-
