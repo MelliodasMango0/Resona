@@ -79,3 +79,33 @@ export async function enrichWithItunesData(song) {
     return song;
   }
 }
+
+
+/**
+ * Gets preview/audio/artwork for the uploaded song using just the filename/title
+ */
+export async function getPreviewForUploadedSong(query) {
+  const safeQuery = sanitizeQuery(query);
+  const url = `https://itunes.apple.com/search?term=${encodeURIComponent(safeQuery)}&entity=song&limit=1`;
+
+  console.log(`🎵 Searching iTunes for uploaded song: ${safeQuery}`);
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    console.log("🎶 Uploaded song iTunes result:", data);
+
+    if (data.results.length === 0) return null;
+
+    const result = data.results[0];
+    return {
+      title: result.trackName,
+      artist: result.artistName,
+      artwork: result.artworkUrl100 || null,
+      previewUrl: result.previewUrl || null
+    };
+  } catch (err) {
+    console.error("❌ Failed to get preview for uploaded song:", err);
+    return null;
+  }
+}

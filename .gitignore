@@ -1,3 +1,4 @@
 frontend/openaiConfig.js
+node_modules/
 .env
-node_modules
+

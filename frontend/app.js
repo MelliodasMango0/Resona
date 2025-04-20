@@ -63,6 +63,8 @@ playBtn.addEventListener("click", async () => {
     const audioElement = document.getElementById("songAudio");
     const canvas = document.getElementById("audioVisualizer");
     
+    console.log("▶️ Play button clicked. Rendering audio element with preview URL:", uploadedSongData.previewUrl);
+    console.log("🎨 Setting up visualizer for audio element:", audioElement);
     setupVisualizer(audioElement, canvas);
     
     // Add button event listeners
@@ -150,7 +152,7 @@ function setupVisualizer(audioElement, canvas) {
   analyser.smoothingTimeConstant = 0.7;
 
   const source = audioContext.createMediaElementSource(audioElement);
-  source.connect(analyser);
+    source.connect(analyser);
   analyser.connect(audioContext.destination);
 
   const bufferLength = analyser.frequencyBinCount;
@@ -271,14 +273,14 @@ function getMatchClass(score) {
 
 function setupMiniVisualizer(audioElement, canvas) {
   const ctx = canvas.getContext('2d');
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const analyser = audioCtx.createAnalyser();
-  analyser.fftSize = 2048;
-  analyser.smoothingTimeConstant = 0.7;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.7;
 
   const source = audioCtx.createMediaElementSource(audioElement);
-  source.connect(analyser);
-  analyser.connect(audioCtx.destination);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
 
   const bufferLength = analyser.frequencyBinCount;
   const dataArray = new Uint8Array(bufferLength);
@@ -349,7 +351,7 @@ function setupMiniVisualizer(audioElement, canvas) {
 
   audioElement.addEventListener('pause', () => {
     if (animationId) {
-      cancelAnimationFrame(animationId);
+    cancelAnimationFrame(animationId);
       animationId = null;
     }
     drawCenterLineOnly();
@@ -357,7 +359,7 @@ function setupMiniVisualizer(audioElement, canvas) {
 
   audioElement.addEventListener('ended', () => {
     if (animationId) {
-      cancelAnimationFrame(animationId);
+    cancelAnimationFrame(animationId);
       animationId = null;
     }
     drawCenterLineOnly();
