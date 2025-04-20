@@ -2,12 +2,20 @@
 import express from 'express';
 import fetch from 'node-fetch';
 import cors from 'cors';
-
 import dotenv from 'dotenv';
+import multer from 'multer';
+import { spawn } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 dotenv.config();
 
 const app = express();
-const PORT = 3001;
+const PORT = 3005;
 
 const clientId = process.env.SPOTIFY_CLIENT_ID;
 const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -18,7 +26,10 @@ let tokenExpiresAt = 0;
 app.use(cors());
 app.use(express.json());
 
-// Get or refresh Spotify token
+// === MULTER SETUP FOR FILE UPLOADS ===
+const upload = multer({ dest: 'uploads/' });
+
+// === SPOTIFY TOKEN HELPER ===
 async function getSpotifyToken() {
   const now = Date.now();
   if (cachedToken && now < tokenExpiresAt) return cachedToken;
@@ -45,7 +56,7 @@ async function getSpotifyToken() {
   return cachedToken;
 }
 
-// 🔍 New /search endpoint for song lookup
+// === EXISTING SPOTIFY SEARCH ROUTE ===
 app.get('/search', async (req, res) => {
   const query = req.query.q;
   if (!query) return res.status(400).send('Missing search query');
@@ -67,7 +78,7 @@ app.get('/search', async (req, res) => {
       artist: track.artists.map(a => a.name).join(', '),
       previewUrl: track.preview_url,
       artwork: track.album.images?.[0]?.url || '',
-      genre: null, // Could be improved by calling /artists endpoint
+      genre: null,
     });
   } catch (err) {
     console.error(err);
@@ -75,6 +86,52 @@ app.get('/search', async (req, res) => {
   }
 });
 
+app.post('/recommend', upload.single('file'), (req, res) => {
+  const filePath = req.file.path;
+  console.log("/recommend route was hit");
+  console.log("Received file upload:", filePath);
+
+  const pythonScript = path.join(__dirname, '../siamese_network/recommend_from_file.py');
+  const python = spawn('python', [pythonScript, filePath]);
+
+  let output = '';
+  let errorOutput = '';
+
+  python.stdout.on("data", (data) => {
+    output += data.toString();
+    console.log("[Python stdout]", data.toString());
+  });
+
+  python.stderr.on("data", (data) => {
+    errorOutput += data.toString();
+    console.error("[Python stderr]", data.toString());
+  });
+
+  python.on("close", (code) => {
+    console.log("Python exited with code:", code);
+    fs.unlinkSync(filePath);  // clean up the uploaded file
+
+    if (code !== 0) {
+      return res.status(500).json({
+        error: "Python script failed",
+        stderr: errorOutput
+      });
+    }
+
+    try {
+      const parsed = JSON.parse(output);  // ✅ parse only when Python is fully done
+      res.json(parsed);  // ✅ success
+    } catch (err) {
+      console.error("Failed to parse Python output:", output);
+      res.status(500).json({
+        error: "Invalid JSON from Python",
+        raw: output
+      });
+    }
+  });
+});
+
+
 app.listen(PORT, () => {
-  console.log(`🎧 Spotify token proxy + search running at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });

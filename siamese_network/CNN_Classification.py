@@ -6,11 +6,15 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, Dataset
 import json
 import csv
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+features_path = os.path.join(BASE_DIR, "song_features_ext.json")
 
 THRESHOLD = 0.5
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Using device: {device}")
+#print(f"Using device: {device}")
 
 
 def pad_mfcc(mfcc, target_length):
@@ -63,7 +67,7 @@ class SiameseDataset(Dataset):
 class SiameseNet(nn.Module):
     def __init__(self, input_shape=(1, 13, 100), fc_output_dim=256):
         super(SiameseNet, self).__init__()
-        print("✅ NEW SiameseCNN initialized")
+        #print("NEW SiameseCNN initialized")
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
         self.pool = nn.MaxPool2d(2, 2)
@@ -91,18 +95,6 @@ class SiameseNet(nn.Module):
         diff = torch.abs(f1 - f2)
         return self.fc(diff)
 
-
-# Define loss function and optimizer
-loss_function = nn.BCEWithLogitsLoss()
-model = SiameseNet(input_shape=(1, 13, 100), fc_output_dim=256).to(device)
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-# Create DataLoader
-batch_size = 32
-train_dataset = SiameseDataset("train.csv", "song_features_ext.json")
-test_dataset = SiameseDataset("test.csv", "song_features_ext.json")
-
-
 #====== CUSTOM COLLATE FN that pads all MFCC matrices to the largest size matrix (song)
 def collate_fn(batch):
     batch = [b for b in batch if b is not None]
@@ -123,31 +115,6 @@ def collate_fn(batch):
     y_tensor = torch.stack(y_batch)
 
     return x1_padded, x2_padded, y_tensor
-
-
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-model.eval()
-
-# --- Step 4: Grab a Batch and Check Shapes ---
-batch = next(iter(train_loader))
-if batch is not None:
-    x1, x2, y = batch
-    print("✅ Batch loaded")
-    print("x1 shape:", x1.shape)  # Expected: (B, 1, 13, T)
-    print("x2 shape:", x2.shape)
-    print("y shape: ", y.shape)
-
-    # --- Step 5: Dummy Forward Pass ---
-    x1, x2 = x1.to(device), x2.to(device)
-    with torch.no_grad():
-        output = model(x1, x2)
-        print("✅ Forward pass succeeded")
-        print("Model output shape:", output.shape)  # Expected: (B, 1)
-        print("Predictions:", torch.sigmoid(output).squeeze())
-else:
-    print("❌ No batch returned from DataLoader (check for invalid samples)")
-
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 
 # Training function
 def train_model(model, train_loader, loss_function, optimizer, num_epochs=25):
@@ -208,6 +175,42 @@ def evaluate_model(model, test_loader):
     print(f"Test Accuracy: {acc:.4f}")
     return acc
 if __name__ == "__main__":
+
+    # Define loss function and optimizer
+    loss_function = nn.BCEWithLogitsLoss()
+    model = SiameseNet(input_shape=(1, 13, 100), fc_output_dim=256).to(device)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+    # Create DataLoader
+    batch_size = 32
+    train_dataset = SiameseDataset("train.csv", features_path)
+    test_dataset = SiameseDataset("test.csv", features_path)
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+    model.eval()
+
+    # --- Step 4: Grab a Batch and Check Shapes ---
+    batch = next(iter(train_loader))
+    if batch is not None:
+        x1, x2, y = batch
+        print("Batch loaded")
+        print("x1 shape:", x1.shape)  # Expected: (B, 1, 13, T)
+        print("x2 shape:", x2.shape)
+        print("y shape: ", y.shape)
+
+        # --- Step 5: Dummy Forward Pass ---
+        x1, x2 = x1.to(device), x2.to(device)
+        with torch.no_grad():
+            output = model(x1, x2)
+            print("Forward pass succeeded")
+            print("Model output shape:", output.shape)  # Expected: (B, 1)
+            print("Predictions:", torch.sigmoid(output).squeeze())
+    else:
+        print("No batch returned from DataLoader (check for invalid samples)")
+
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+
+
     # Train the model
     num_epochs = 25
     losses, accuracies = train_model(model, train_loader, loss_function, optimizer, num_epochs)

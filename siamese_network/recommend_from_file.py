@@ -8,14 +8,18 @@ import torch
 import torch.nn.functional as F
 from CNN_Classification import SiameseNet
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+features_path = os.path.join(BASE_DIR, "song_features_ext.json")
+model_path = os.path.join(BASE_DIR, "siamese_model.pth")
+
 # Load model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = SiameseNet(input_shape=(1, 13, 100)).to(device)
-model.load_state_dict(torch.load("siamese_model.pth", map_location=device))
+model.load_state_dict(torch.load(model_path, map_location=device))
 model.eval()
 
 # Load DB features
-with open("song_features_ext.json", "r") as f:
+with open(features_path, "r") as f:
     song_db = json.load(f)
 
 def extract(path):
@@ -38,7 +42,7 @@ def recommend(features):
             score = model(x1p, x2p).item()
             sim = torch.sigmoid(torch.tensor(score)).item()
             results.append((name, int(sim * 100)))
-    return sorted(results, key=lambda x: x[1], reverse=True)[:10]
+    return sorted(results, key=lambda x: x[1], reverse=True)[:5]
 
 def parse_artist_title(filename):
     base = os.path.splitext(filename)[0]
@@ -48,14 +52,32 @@ def parse_artist_title(filename):
     return "Unknown", base.strip()
 
 if __name__ == "__main__":
-    audio_file = sys.argv[1]
-    feats = extract(audio_file)
-    top_matches = recommend(feats)
-    print(json.dumps([
-        {
-            "artist": parse_artist_title(name)[0],
-            "title": parse_artist_title(name)[1],
-            "matchScore": int(sim * 100)
-        }
-        for name, sim in top_matches
-    ]))
+    try:
+        audio_file = sys.argv[1]
+        feats = extract(audio_file)
+
+        top_matches = recommend(feats)  # returns [(filename, score), ...]
+
+        if not top_matches:
+            print("No matches found", file=sys.stderr)
+            sys.exit(1)
+
+        output = []
+        for name, sim in top_matches:
+            try:
+                artist, title = parse_artist_title(name)
+            except Exception as e:
+                print(f"Failed to parse artist/title for: {name} — {e}", file=sys.stderr)
+                continue  # skip malformed entry
+
+            output.append({
+                "artist": artist,
+                "title": title,
+                "matchScore": sim 
+            })
+
+        print(json.dumps(output))
+
+    except Exception as e:
+        print(f"Fatal error: {e}", file=sys.stderr)
+        sys.exit(1)

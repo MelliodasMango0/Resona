@@ -1,5 +1,7 @@
 import { getRecommendations } from './api.js';
 import { enrichWithItunesData, getPreviewForUploadedSong } from './itunes.js';
+import { getLocalRecommendationsFromFile } from './api.js';
+import { enrichRecommendedSong } from './itunes.js';
 
 const fileInput = document.getElementById("fileInput");
 const playBtn = document.getElementById("playBtn");
@@ -8,6 +10,14 @@ const rightPanel = document.querySelector(".recommendations");
 
 let uploadedSongData = null;
 let currentlyPlayingAudio = null;
+
+window.onerror = function (message, source, lineno, colno, error) {
+  console.error("Global JS Error Caught:", message, source, lineno, colno, error);
+};
+
+window.onunhandledrejection = function (e) {
+  console.error("Unhandled Promise Rejection:", e.reason);
+};
 
 function pauseCurrentAudio() {
   if (currentlyPlayingAudio && !currentlyPlayingAudio.paused) {
@@ -28,6 +38,8 @@ fileInput.addEventListener("change", async (e) => {
 
   const previewData = await getPreviewForUploadedSong(baseName);
 
+  console.log("Preview Data:", previewData);
+
   if (!previewData) {
     renderLeftPanelError();
     return;
@@ -35,8 +47,11 @@ fileInput.addEventListener("change", async (e) => {
 
   uploadedSongData = {
     ...previewData,
-    filename: file.name
+    filename: file.name,
+    originalFile: file
   };
+
+  console.log("Sending to renderLeftPanel:", uploadedSongData);
 
   renderLeftPanel(uploadedSongData);
 });
@@ -75,16 +90,33 @@ playBtn.addEventListener("click", async () => {
 
 // === ANALYZE LOGIC ===
 async function handleAnalyze(song) {
-  if (!song?.title) return;
+
+  console.log("Analyzing Song: ", song)
+
+  if (!song?.filename || !song?.originalFile){ 
+    console.log("Missing file");
+    return;
+  }
 
   showLoading();
-  const rawRecs = await getRecommendations(song.title, song.filename || "");
-  const enriched = await Promise.all(rawRecs.map(enrichWithItunesData));
-  renderRecommendations(enriched);
+
+  try {
+    console.log("Getting Local Recommendations");
+    const rawRecs = await getLocalRecommendationsFromFile(song.originalFile);
+    console.log("Got Local Recommendations");
+    const enriched = await Promise.all(rawRecs.map(enrichRecommendedSong));
+    renderRecommendations(enriched);
+  } catch (err) {
+    console.error("Recommendation error:", err);
+    alert("Something went wrong during recommendation.");
+  }
 }
 
 // === RENDER LEFT PANEL ===
 async function renderLeftPanel(song) {
+
+  console.log("Rendering song:", song);
+
   const panel = document.querySelector(".upload-box");
   panel.innerHTML = `
     <img src="${song.artwork}" width="100" style="border-radius:8px;margin-bottom:1rem"/>
@@ -134,7 +166,7 @@ async function renderLeftPanel(song) {
     const previewData = await getPreviewForUploadedSong(baseName);
 
     if (previewData) {
-      uploadedSongData = { ...previewData, filename: file.name };
+      uploadedSongData = { ...previewData, filename: file.name, originalFile: file };
       renderLeftPanel(uploadedSongData);
     } else {
       renderLeftPanelError();
@@ -158,7 +190,7 @@ function setupVisualizer(audioElement, canvas) {
   const bufferLength = analyser.frequencyBinCount;
   const dataArray = new Uint8Array(bufferLength);
 
-  let animationId = null; // ✅ needed to cancel animation
+  let animationId = null; // needed to cancel animation
 
   function drawCenterLineOnly() {
     canvas.width = canvas.clientWidth || 300;
@@ -175,7 +207,7 @@ function setupVisualizer(audioElement, canvas) {
   }
 
   function draw() {
-    animationId = requestAnimationFrame(draw); // ✅ store ID to cancel it
+    animationId = requestAnimationFrame(draw); // store ID to cancel it
 
     analyser.getByteFrequencyData(dataArray);
 
@@ -220,7 +252,7 @@ function setupVisualizer(audioElement, canvas) {
     pauseCurrentAudio(); // Pause any currently playing audio
     currentlyPlayingAudio = audioElement; // Set the currently playing audio
     audioContext.resume();
-    draw(); // ✅ start drawing
+    draw(); // start drawing
   });
 
   audioElement.addEventListener('pause', () => {
@@ -257,7 +289,7 @@ function renderLeftPanelError() {
     const previewData = await getPreviewForUploadedSong(baseName);
 
     if (previewData) {
-      uploadedSongData = { ...previewData, filename: file.name };
+      uploadedSongData = { ...previewData, filename: file.name, originalFile: file };
       renderLeftPanel(uploadedSongData);
     } else {
       renderLeftPanelError();
@@ -448,7 +480,7 @@ window.onload = () => {
       const previewData = await getPreviewForUploadedSong(baseName);
 
       if (previewData) {
-        uploadedSongData = { ...previewData, filename: file.name };
+        uploadedSongData = { ...previewData, filename: file.name, originalFile: file };
         renderLeftPanel(uploadedSongData);
       } else {
         renderLeftPanelError();

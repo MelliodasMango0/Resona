@@ -3,6 +3,22 @@ import { OPENAI_API_KEY } from './openaiConfig.js';
 
 const isMock = false; // Toggle this for demo/dev mode
 
+export async function getLocalRecommendationsFromFile(file) {
+  console.log("📤 getLocalRecommendationsFromFile called with:", file);
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch("http://localhost:3005/recommend", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) throw new Error("Recommendation server failed");
+
+  return await res.json(); // [{ title, artist, matchScore }]
+}
+
 export async function disambiguateUploadedSong(query, filename) {
   const prompt = `
 A user uploaded a file named "${filename}", and from the filename, the tentative song title is "${query}".

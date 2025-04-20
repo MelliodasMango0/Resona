@@ -1,4 +1,6 @@
 frontend/openaiConfig.js
 node_modules/
 .env
-
+siamese_network/song_features_ext.json
+frontend/uploads
+siamese_network/__pycache__
