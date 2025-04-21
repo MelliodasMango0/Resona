@@ -4,7 +4,7 @@ import os
 import json
 from sklearn.preprocessing import StandardScaler
 # Directory containing songs
-songs_dir = "music/rap"
+songs_dir = "music/rock"
 output_file = "song_features_ext.json"
 
 # Load existing features if the file exists
