@@ -6,3 +6,4 @@ audioread
 pydub
 scikit-learn
 faiss-cpu
+matplotlib-3.10.1
